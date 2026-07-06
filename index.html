@@ -134,6 +134,8 @@
   .foot-links a:hover{color:var(--ink)}
   .made{color:var(--faint); font-size:13px; margin-top:18px}
   .made a{color:var(--muted); font-weight:600} .made a:hover{color:var(--ink)}
+  .visits{display:inline-flex; align-items:center; gap:5px; color:var(--faint)}
+  .visits svg{width:13px; height:13px; opacity:.7} .visits b{color:var(--muted); font-weight:600}
 
   .reveal{opacity:0; transform:translateY(24px); transition:opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1)}
   .reveal.in{opacity:1; transform:none}
@@ -277,7 +279,7 @@
         <a href="https://github.com/7757/Seeybot/blob/main/LICENSE" target="_blank" rel="noopener">MIT 许可</a>
       </div>
     </div>
-    <div class="made">由 <a href="https://github.com/7757" target="_blank" rel="noopener">musk</a> 打造 · 在 <a href="https://github.com/7757/Seeybot" target="_blank" rel="noopener">GitHub</a> 开源</div>
+    <div class="made">由 <a href="https://github.com/7757" target="_blank" rel="noopener">musk</a> 打造 · 在 <a href="https://github.com/7757/Seeybot" target="_blank" rel="noopener">GitHub</a> 开源 · <span class="visits" title="累计访客"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="2.5"/></svg><b id="gc-count">—</b> 访客</span></div>
   </div>
 </footer>
 
@@ -289,6 +291,11 @@
   document.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click',async()=>{
     try{await navigator.clipboard.writeText(b.dataset.copy); const s=b.querySelector('.copy'); if(s){const t=s.textContent; s.textContent='已复制'; setTimeout(()=>s.textContent=t,1400)}}catch(e){}
   }));
+  // live visitor count from GoatCounter
+  fetch('https://seeybot.goatcounter.com/counter/TOTAL.json')
+    .then(r=>r.ok?r.json():Promise.reject())
+    .then(d=>{const el=document.getElementById('gc-count'); if(el) el.textContent=(d.count_unique||d.count||'—').toString();})
+    .catch(()=>{});
 </script>
 <script data-goatcounter="https://seeybot.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
