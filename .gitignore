@@ -1,0 +1,19 @@
+# Build output
+build/
+*.app
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Screen recordings / large local media
+*.mov
+*.mp4
+
+# Editor / misc
+*.swp
+.vscode/
+.idea/
+xcuserdata/
+*.xcuserstate
