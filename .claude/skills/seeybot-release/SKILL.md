@@ -11,7 +11,7 @@ A native SwiftUI **macOS notch/Dynamic-Island widget** that shows live stats for
 usage — as a cute animated dashboard. Reads only local files; no network. Single
 `swiftc`-built binary, **no Xcode**.
 
-- Repo: <https://github.com/7757/Seeybot>  · author **Mask** = <https://github.com/7757>
+- Repo: <https://github.com/7757/Seeybot>  · author **musk** = <https://github.com/7757>
 - Homebrew tap (separate repo): <https://github.com/7757/homebrew-seeybot> → `brew install --cask 7757/seeybot/seeybot`
 - Website (GitHub Pages, this repo `index.html`): served from `main` / root
 - Bundle id `com.seeybot.notch`; ad-hoc signed (no Apple Developer account → Gatekeeper handled by stripping quarantine)
@@ -46,7 +46,7 @@ usage — as a cute animated dashboard. Reads only local files; no network. Sing
 - Build with `./build.sh` (needs Command Line Tools `swiftc`, no Xcode).
 
 ## Commit / author convention
-- **Commits must NOT include a `Co-Authored-By: Claude` trailer.** Author is Mask only.
+- **Commits must NOT include a `Co-Authored-By: Claude` trailer.** Author is musk only.
 - UI text is **English**; docs are multi-language (`README.md` EN, `README.zh-CN.md`, `README.ja.md`) — keep them in sync. Website (`index.html`) is currently Chinese-first.
 
 ## Cutting a release (vX.Y)
