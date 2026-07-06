@@ -7,9 +7,8 @@ build/
 .AppleDouble
 .LSOverride
 
-# Screen recordings / large local media
+# Raw screen recordings (processed web assets under docs/ are committed)
 *.mov
-*.mp4
 
 # Editor / misc
 *.swp
