@@ -243,6 +243,10 @@
 </section>
 
 <script>
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+  addEventListener('pageshow',()=>requestAnimationFrame(()=>scrollTo(0,0)));
+  addEventListener('load',()=>setTimeout(()=>scrollTo(0,0),0));
   const nav=document.getElementById('nav');
   addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>20));
   const io=new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
