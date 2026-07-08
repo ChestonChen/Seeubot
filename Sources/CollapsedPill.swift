@@ -9,10 +9,12 @@ struct CollapsedPill: View {
     private var mood: Mood { Mood.from(stats) }
 
     var body: some View {
-        HStack(spacing: 16) {
-            MascotView(mood: mood, size: 23)
-                .frame(width: 25)
-                .clipped()   // keep the wide sparkle-canvas from crowding the metrics
+        HStack(spacing: 12) {
+            WorkingMascotRunway(mood: mood, active: stats.totalWorking > 0,
+                                trackWidth: 96, height: Dim.pillHeight,
+                                mascotSize: 23, restingEdge: .left)
+                .frame(width: 96, height: Dim.pillHeight)
+                .clipped()
             LiveMetric(icon: "bolt.fill", value: stats.totalWorking,
                        color: Palette.working, pulse: stats.totalWorking > 0)
             LiveMetric(icon: "moon.zzz.fill", value: stats.totalIdle, color: Palette.idle)

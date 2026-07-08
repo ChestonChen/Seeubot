@@ -25,7 +25,9 @@ struct SidesBar: View {
         LiveMetric(icon: "moon.zzz.fill", value: stats.totalIdle, color: Palette.idle)
     }
     private var mascot: some View {
-        MascotView(mood: mood, size: min(barHeight * 0.62, 21)).frame(width: 25).clipped()
+        WorkingMascotRunway(mood: mood, active: stats.totalWorking > 0,
+                            trackWidth: Dim.barSideWidth, height: barHeight,
+                            mascotSize: min(barHeight * 0.62, 21), restingEdge: .right)
     }
 
     var body: some View {
@@ -33,7 +35,7 @@ struct SidesBar: View {
             if metrics.notchWidth > 0 {
                 // Notched: content flanks the empty notch gap.
                 HStack(spacing: 0) {
-                    HStack(spacing: 0) { Spacer(minLength: 0); mascot }
+                    mascot
                         .frame(width: Dim.barSideWidth)
                     Color.clear.frame(width: metrics.notchWidth)
                     HStack(spacing: 0) {
@@ -45,7 +47,9 @@ struct SidesBar: View {
             } else {
                 // Non-notched: one continuous row, no gap.
                 HStack(spacing: 13) {
-                    mascot
+                    WorkingMascotRunway(mood: mood, active: stats.totalWorking > 0,
+                                        trackWidth: 56, height: barHeight,
+                                        mascotSize: min(barHeight * 0.62, 21), restingEdge: .right)
                     working
                     idle
                 }
