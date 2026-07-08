@@ -52,14 +52,14 @@ brew install --cask 7757/seeybot/seeybot
 ソースからビルドし `/Applications` にインストール、すぐ起動してログイン時に自動起動：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/7757/Seeybot/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ChestonChen/Seeubot/main/install.sh | bash
 ```
 
 ### ソースから
 
 ```bash
-git clone https://github.com/7757/Seeybot.git
-cd Seeybot && ./install.sh
+git clone https://github.com/ChestonChen/Seeubot.git
+cd Seeubot && ./install.sh
 ```
 
 > Apple シリコン Mac・**macOS 14+**・Command Line Tools（`xcode-select --install`）。Xcode は不要。

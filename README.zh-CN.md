@@ -52,14 +52,14 @@ brew install --cask 7757/seeybot/seeybot
 从源码编译、安装到 `/Applications`、立即启动并开机自启：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/7757/Seeybot/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ChestonChen/Seeubot/main/install.sh | bash
 ```
 
 ### 从源码
 
 ```bash
-git clone https://github.com/7757/Seeybot.git
-cd Seeybot && ./install.sh
+git clone https://github.com/ChestonChen/Seeubot.git
+cd Seeubot && ./install.sh
 ```
 
 > Apple 芯片 Mac、**macOS 14+**、已装命令行工具（`xcode-select --install`）。无需 Xcode。
