@@ -26,8 +26,9 @@ struct DashboardBody: View {
 
             // Per-tool split
             VStack(spacing: 10) {
-                ToolRow(stat: stats.stat(for: .claude), grandTotal: stats.tokensAllTime.total)
-                ToolRow(stat: stats.stat(for: .codex), grandTotal: stats.tokensAllTime.total)
+                ForEach(stats.perTool, id: \.tool.id) { stat in
+                    ToolRow(stat: stat, grandTotal: stats.tokensAllTime.total)
+                }
             }
             .padding(.top, 2)
 
@@ -184,9 +185,14 @@ struct DashboardBody: View {
             Text("\(stats.sessionsAllTime) sessions all-time")
                 .font(Typo.rounded(9, .medium)).foregroundStyle(Palette.inkFaint)
             Spacer()
-            Text("Claude Code · Codex")
+            Text(toolList)
                 .font(Typo.rounded(9, .medium)).foregroundStyle(Palette.inkFaint)
         }
+    }
+
+    private var toolList: String {
+        let names = stats.perTool.map { $0.tool.display }
+        return names.isEmpty ? "No agents" : names.joined(separator: " · ")
     }
 }
 
@@ -200,7 +206,7 @@ struct RotatingAura: View {
             let a = tl.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 8) / 8
             Ellipse()
                 .fill(AngularGradient(
-                    gradient: Gradient(colors: [Palette.claude, Palette.codex, Palette.tCacheCreate, Palette.working, Palette.claude]),
+                    gradient: Gradient(colors: [Palette.claude, Palette.codex, Palette.cursor, Palette.tCacheCreate, Palette.working, Palette.claude]),
                     center: .center,
                     angle: .degrees(a * 360)))
                 .frame(width: 220, height: 120)
