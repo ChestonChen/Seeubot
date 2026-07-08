@@ -142,17 +142,6 @@
   .install-box{max-width:700px; margin:44px auto 0; background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:34px; text-align:center}
   .install-box .lbl{font-weight:600; font-size:14.5px; color:var(--muted); letter-spacing:.02em}
   .install-box .cmd{width:100%; justify-content:space-between; margin-top:13px}
-  .install-box .or{color:var(--faint); font-size:12.5px; margin:18px 0 4px}
-
-  footer{border-top:1px solid var(--line); padding:54px 0 68px; margin-top:40px}
-  .foot{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px}
-  .foot .brand{font-size:15.5px}
-  .foot-links{display:flex; gap:24px; color:var(--muted); font-size:14px; flex-wrap:wrap}
-  .foot-links a:hover{color:var(--ink)}
-  .made{color:var(--faint); font-size:13px; margin-top:18px}
-  .made a{color:var(--muted); font-weight:600} .made a:hover{color:var(--ink)}
-  .visits{display:inline-flex; align-items:center; gap:5px; color:var(--faint)}
-  .visits svg{width:13px; height:13px; opacity:.7} .visits b{color:var(--muted); font-weight:600}
 
   .reveal{opacity:0; transform:translateY(24px); transition:opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1)}
   .reveal.in{opacity:1; transform:none}
@@ -244,27 +233,11 @@
     <h2 class="reveal">一行命令，装好即用。</h2>
     <p class="lead center reveal">Apple 芯片 Mac、macOS 14+、已装命令行工具。无需 Xcode。</p>
     <div class="install-box reveal">
-      <div class="lbl">Homebrew</div>
-      <button class="cmd" data-copy="brew install --cask 7757/seeybot/seeybot">brew install --cask 7757/seeybot/seeybot <span class="copy">复制</span></button>
-      <div class="or">—— 或一行脚本 ——</div>
-      <button class="cmd" data-copy="curl -fsSL https://raw.githubusercontent.com/7757/Seeybot/main/install.sh | bash">curl -fsSL https://raw.githubusercontent.com/7757/Seeybot/main/install.sh | bash <span class="copy">复制</span></button>
+      <div class="lbl">Shell</div>
+      <button class="cmd" data-copy="curl -fsSL https://raw.githubusercontent.com/ChestonChen/Seeubot/main/install.sh | bash">curl -fsSL https://raw.githubusercontent.com/ChestonChen/Seeubot/main/install.sh | bash <span class="copy">复制</span></button>
     </div>
   </div>
 </section>
-
-<footer>
-  <div class="wrap">
-    <div class="foot">
-      <a class="brand" href="#top"><img src="docs/favicon.png" style="width:26px;height:26px;border-radius:7px" alt=""/> Seeybot</a>
-      <div class="foot-links">
-        <a href="https://github.com/7757/Seeybot" target="_blank" rel="noopener">GitHub</a>
-        <a href="https://github.com/7757/Seeybot/releases" target="_blank" rel="noopener">Releases</a>
-        <a href="https://github.com/7757/Seeybot/blob/main/LICENSE" target="_blank" rel="noopener">MIT 许可</a>
-      </div>
-    </div>
-    <div class="made">由 <a href="https://github.com/7757" target="_blank" rel="noopener">musk</a> 打造 · 在 <a href="https://github.com/7757/Seeybot" target="_blank" rel="noopener">GitHub</a> 开源 · <span class="visits" title="累计访客"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="2.5"/></svg><b id="gc-count">—</b> 访客</span></div>
-  </div>
-</footer>
 
 <script>
   const nav=document.getElementById('nav');
@@ -274,9 +247,6 @@
   document.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click',async()=>{
     try{await navigator.clipboard.writeText(b.dataset.copy); const s=b.querySelector('.copy'); if(s){const t=s.textContent; s.textContent='已复制'; setTimeout(()=>s.textContent=t,1400)}}catch(e){}
   }));
-  fetch('https://seeybot.goatcounter.com/counter/TOTAL.json').then(r=>r.ok?r.json():Promise.reject()).then(d=>{
-    const f=document.getElementById('gc-count'); if(f) f.textContent=d.count_unique;
-  }).catch(()=>{});
 </script>
 <script data-goatcounter="https://seeybot.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
