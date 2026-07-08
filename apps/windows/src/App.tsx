@@ -5,10 +5,15 @@ import MascotCanvas, { type Mood } from "./MascotCanvas";
 import { emptyStats, type DashStats, type LiveSession, type TokenBreakdown, type ToolStat } from "./types";
 import { setIslandFrame } from "./windowFrame";
 
+const DASHBOARD_REVEAL_DELAY_MS = 260;
+const COLLAPSE_DELAY_MS = 120;
+
 export default function App() {
   const [stats, setStats] = useState<DashStats>(emptyStats);
   const [expanded, setExpanded] = useState(false);
+  const [dashboardReady, setDashboardReady] = useState(false);
   const collapseTimer = useRef<number | null>(null);
+  const revealTimer = useRef<number | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -34,15 +39,19 @@ export default function App() {
 
   const enter = () => {
     if (collapseTimer.current) window.clearTimeout(collapseTimer.current);
+    if (revealTimer.current) window.clearTimeout(revealTimer.current);
     setExpanded(true);
+    revealTimer.current = window.setTimeout(() => setDashboardReady(true), DASHBOARD_REVEAL_DELAY_MS);
   };
 
   const leave = () => {
-    collapseTimer.current = window.setTimeout(() => setExpanded(false), 180);
+    if (revealTimer.current) window.clearTimeout(revealTimer.current);
+    setDashboardReady(false);
+    collapseTimer.current = window.setTimeout(() => setExpanded(false), COLLAPSE_DELAY_MS);
   };
 
   return (
-    <main className={`island ${expanded ? "expanded" : "collapsed"}`} onMouseEnter={enter} onMouseLeave={leave}>
+    <main className={`island ${expanded ? "expanded" : "collapsed"} ${dashboardReady ? "dashboardReady" : ""}`} onMouseEnter={enter} onMouseLeave={leave}>
       <CollapsedPill stats={stats} />
       <Dashboard stats={stats} />
     </main>
@@ -81,36 +90,38 @@ function Dashboard({ stats }: { stats: DashStats }) {
   const toolList = stats.perTool.map((tool) => tool.tool.display).join(" · ") || "No agents";
   return (
     <section className="dashboard">
-      <header className="header">
-        <MascotCanvas mood={moodFromStats(stats)} size={34} />
-        <div>
-          <h1>Seeubot</h1>
-          <p>AI SESSION MONITOR</p>
+      <div className="dashboardContent">
+        <header className="header">
+          <MascotCanvas mood={moodFromStats(stats)} size={34} />
+          <div>
+            <h1>Seeubot</h1>
+            <p>AI SESSION MONITOR</p>
+          </div>
+          <div className="spacer" />
+          <span className="modeBadge">Windows Island</span>
+        </header>
+
+        <div className="statGrid">
+          <StatTile title="Sessions" value={stats.totalLive} color="var(--ink)" glyph="◎" />
+          <StatTile title="Working" value={stats.totalWorking} color="var(--working)" glyph="⚡" pulse={stats.totalWorking > 0} />
+          <StatTile title="Idle" value={stats.totalIdle} color="var(--idle)" glyph="☾" />
         </div>
-        <div className="spacer" />
-        <span className="modeBadge">Windows Island</span>
-      </header>
 
-      <div className="statGrid">
-        <StatTile title="Sessions" value={stats.totalLive} color="var(--ink)" glyph="◎" />
-        <StatTile title="Working" value={stats.totalWorking} color="var(--working)" glyph="⚡" pulse={stats.totalWorking > 0} />
-        <StatTile title="Idle" value={stats.totalIdle} color="var(--idle)" glyph="☾" />
+        <TokenHero all={stats.tokensAllTime} today={stats.tokensToday} working={stats.totalWorking > 0} />
+
+        <div className="toolRows">
+          {stats.perTool.map((stat) => (
+            <ToolRow key={stat.tool.id} stat={stat} grandTotal={Math.max(1, totalTokens(stats.tokensAllTime))} />
+          ))}
+        </div>
+
+        <LiveSessions sessions={stats.sessions} />
+
+        <footer className="footer">
+          <span>{stats.sessionsAllTime} sessions all-time</span>
+          <span>{toolList}</span>
+        </footer>
       </div>
-
-      <TokenHero all={stats.tokensAllTime} today={stats.tokensToday} working={stats.totalWorking > 0} />
-
-      <div className="toolRows">
-        {stats.perTool.map((stat) => (
-          <ToolRow key={stat.tool.id} stat={stat} grandTotal={Math.max(1, totalTokens(stats.tokensAllTime))} />
-        ))}
-      </div>
-
-      <LiveSessions sessions={stats.sessions} />
-
-      <footer className="footer">
-        <span>{stats.sessionsAllTime} sessions all-time</span>
-        <span>{toolList}</span>
-      </footer>
     </section>
   );
 }

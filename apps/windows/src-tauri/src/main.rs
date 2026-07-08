@@ -1,3 +1,5 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 use chrono::{DateTime, Local, Utc};
 use serde::Serialize;
 use serde_json::Value;

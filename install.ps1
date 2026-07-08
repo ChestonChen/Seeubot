@@ -30,6 +30,13 @@ function Install-Shortcut {
   $shortcut.Save()
 }
 
+function Start-Detached($path) {
+  # Launch through cmd's start command so closing the install terminal does not
+  # deliver a console-close event to the app process.
+  $escaped = $path.Replace('"', '\"')
+  Start-Process -FilePath $env:ComSpec -ArgumentList "/c start `"`" `"$escaped`"" -WindowStyle Hidden
+}
+
 function Install-ZipFromUrl($url, $name) {
   $tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("seeubot-win-" + [Guid]::NewGuid())
   New-Item -ItemType Directory -Force -Path $tmp | Out-Null
@@ -120,7 +127,7 @@ if (-not (Test-Path $ExePath)) {
 
 Install-Shortcut
 Step "Launching Seeubot"
-Start-Process $ExePath
+Start-Detached $ExePath
 
 Write-Host ""
 Write-Host "✓ Seeubot for Windows is installed in $InstallDir"
