@@ -236,6 +236,8 @@
     <div class="install-box reveal">
       <div class="lbl">Shell</div>
       <button class="cmd" data-copy="curl -fsSL https://raw.githubusercontent.com/ChestonChen/Seeubot/main/install.sh | bash">curl -fsSL https://raw.githubusercontent.com/ChestonChen/Seeubot/main/install.sh | bash <span class="copy">复制</span></button>
+      <div class="lbl">Uninstall</div>
+      <button class="cmd" data-copy="launchctl unload ~/Library/LaunchAgents/com.chestonchen.seeubot.plist 2>/dev/null; pkill -x Seeubot 2>/dev/null; rm -f ~/Library/LaunchAgents/com.chestonchen.seeubot.plist; rm -rf /Applications/Seeubot.app ~/Applications/Seeubot.app">launchctl unload ~/Library/LaunchAgents/com.chestonchen.seeubot.plist 2&gt;/dev/null; pkill -x Seeubot 2&gt;/dev/null; rm -f ~/Library/LaunchAgents/com.chestonchen.seeubot.plist; rm -rf /Applications/Seeubot.app ~/Applications/Seeubot.app <span class="copy">复制</span></button>
     </div>
   </div>
 </section>
