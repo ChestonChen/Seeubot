@@ -2,12 +2,12 @@
 # Seeybot installer — build from source, install to /Applications, auto-start at login.
 #
 # One-line install (no clone needed):
-#   curl -fsSL https://raw.githubusercontent.com/7757/Seeybot/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/ChestonChen/Seeubot/main/install.sh | bash
 #
 # Or from a checkout:  ./install.sh
 set -euo pipefail
 
-REPO_URL="https://github.com/7757/Seeybot"
+REPO_URL="https://github.com/ChestonChen/Seeubot"
 LABEL="com.seeybot.notch"
 AGENT="$HOME/Library/LaunchAgents/$LABEL.plist"
 
