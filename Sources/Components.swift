@@ -88,6 +88,48 @@ struct LiveMetric: View {
     }
 }
 
+// MARK: - Glass surfaces
+
+struct GlassPanelBackground: View {
+    var cornerRadius: CGFloat
+    var accent: Color = Palette.ink
+    var accentOpacity: Double = 0.18
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+            .fill(.ultraThinMaterial)
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .fill(LinearGradient(
+                        colors: [Color.white.opacity(0.13), Color.white.opacity(0.035)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .stroke(Color.white.opacity(0.18), lineWidth: 1)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .stroke(accent.opacity(accentOpacity), lineWidth: 1.2)
+            )
+            .shadow(color: .black.opacity(0.16), radius: 10, x: 0, y: 5)
+    }
+}
+
+struct GlassCapsuleBackground: View {
+    var accent: Color
+
+    var body: some View {
+        Capsule()
+            .fill(.ultraThinMaterial)
+            .overlay(Capsule().fill(Color.white.opacity(0.08)))
+            .overlay(Capsule().stroke(Color.white.opacity(0.16), lineWidth: 1))
+            .overlay(Capsule().stroke(accent.opacity(0.3), lineWidth: 1))
+    }
+}
+
 // MARK: - Stat tile
 
 struct StatTile: View {
@@ -119,12 +161,7 @@ struct StatTile: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 10)
         .padding(.horizontal, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.white.opacity(0.05))
-                .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(accent.opacity(0.22), lineWidth: 1))
-        )
+        .background(GlassPanelBackground(cornerRadius: 14, accent: accent, accentOpacity: 0.24))
     }
 }
 
@@ -242,10 +279,6 @@ struct SessionChip: View {
         }
         .padding(.horizontal, 9)
         .padding(.vertical, 5)
-        .background(
-            Capsule().fill(Color.white.opacity(0.055))
-                .overlay(Capsule().stroke(
-                    (working ? Palette.working : Palette.idle).opacity(0.3), lineWidth: 1))
-        )
+        .background(GlassCapsuleBackground(accent: working ? Palette.working : Palette.idle))
     }
 }
