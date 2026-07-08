@@ -45,7 +45,7 @@ struct DashboardBody: View {
         HStack(alignment: .center, spacing: 10) {
             MascotView(mood: Mood.from(stats), size: 34)
             VStack(alignment: .leading, spacing: 1) {
-                Text("Seeybot")
+                Text("Seeubot")
                     .font(Typo.rounded(17, .heavy))
                     .foregroundStyle(Palette.ink)
                 Text("AI SESSION MONITOR")

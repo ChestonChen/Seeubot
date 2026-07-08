@@ -42,7 +42,7 @@ import SwiftUI
 final class FirstMouseHostingView<Content: View>: NSHostingView<Content> {
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
     override func mouseDown(with event: NSEvent) {
-        if ProcessInfo.processInfo.environment["SEEYBOT_DEBUG"] != nil {
+        if ProcessInfo.processInfo.environment["SEEUBOT_DEBUG"] != nil {
             FileHandle.standardError.write("HOSTING mouseDown \(event.locationInWindow)\n".data(using: .utf8)!)
         }
         super.mouseDown(with: event)

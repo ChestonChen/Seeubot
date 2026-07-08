@@ -1,11 +1,11 @@
 #!/bin/bash
-# Build Seeybot.app — a native SwiftUI notch widget — using the Command Line Tools
+# Build Seeubot.app — a native SwiftUI notch widget — using the Command Line Tools
 # toolchain (no Xcode required). Compiles all Sources/*.swift into one binary and
 # assembles a proper .app bundle.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-APP="$ROOT/build/Seeybot.app"
+APP="$ROOT/build/Seeubot.app"
 SDK="$(xcrun --show-sdk-path)"
 TARGET="arm64-apple-macos14.0"
 
@@ -20,7 +20,7 @@ swiftc \
   -O \
   -framework AppKit -framework SwiftUI \
   "$ROOT"/Sources/*.swift \
-  -o "$APP/Contents/MacOS/Seeybot"
+  -o "$APP/Contents/MacOS/Seeubot"
 
 echo "▸ Assembling bundle…"
 cp "$ROOT/Info.plist" "$APP/Contents/Info.plist"
