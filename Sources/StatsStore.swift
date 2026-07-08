@@ -12,8 +12,8 @@ final class StatsStore: ObservableObject {
     @Published var updateAvailable: String? = nil // latest release tag if newer than us
     var onMenu: (() -> Void)?                     // in-widget "⋯" button → show control menu
     @Published var mode: WidgetMode = WidgetMode(rawValue:
-        UserDefaults.standard.string(forKey: "seeybot.mode") ?? "") ?? .hanging {
-        didSet { UserDefaults.standard.set(mode.rawValue, forKey: "seeybot.mode") }
+        UserDefaults.standard.string(forKey: "seeubot.mode") ?? "") ?? .hanging {
+        didSet { UserDefaults.standard.set(mode.rawValue, forKey: "seeubot.mode") }
     }
 
     func toggleMode() {
@@ -22,7 +22,7 @@ final class StatsStore: ObservableObject {
 
     // Only ever touched on `queue`, so accessing it off the main actor is safe.
     nonisolated(unsafe) private let collector = SessionCollector()
-    private let queue = DispatchQueue(label: "seeybot.collector", qos: .utility)
+    private let queue = DispatchQueue(label: "seeubot.collector", qos: .utility)
     // Drop a tick if a previous collect() is still running (only touched on `queue`).
     nonisolated(unsafe) private var collecting = false
     private var timer: Timer?

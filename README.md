@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="docs/icon.png" width="116" alt="Seeybot" />
+<img src="docs/icon.png" width="116" alt="Seeubot" />
 
-# Seeybot
+# Seeubot
 
 **A cute, live Dynamic-Island widget for your Mac notch that tracks your Claude Code & Codex sessions.**
 
@@ -13,7 +13,7 @@
 ![License](https://img.shields.io/badge/License-MIT-blue)
 ![No Xcode](https://img.shields.io/badge/build-no%20Xcode%20needed-brightgreen)
 
-<img src="docs/demo.gif" width="720" alt="Seeybot demo" />
+<img src="docs/demo.gif" width="720" alt="Seeubot demo" />
 
 </div>
 
@@ -21,7 +21,7 @@
 
 ## What is it
 
-Seeybot lives in your Mac's **notch**. At a glance it shows how many AI coding sessions are running, how many are **working** vs **idle**, and how many tokens they've burned — with a cute robot mascot that blinks, glances around and chatters when work is happening. Hover it and it springs open into a full dashboard.
+Seeubot lives in your Mac's **notch**. At a glance it shows how many AI coding sessions are running, how many are **working** vs **idle**, and how many tokens they've burned — with a cute robot mascot that blinks, glances around and chatters when work is happening. Hover it and it springs open into a full dashboard.
 
 Everything is read **locally** from the session files Claude Code and Codex already write to disk. No network, no API keys, no telemetry.
 
@@ -40,12 +40,6 @@ Everything is read **locally** from the session files Claude Code and Codex alre
 </div>
 
 ## Install
-
-### Homebrew
-
-```bash
-brew install --cask 7757/seeybot/seeybot
-```
 
 ### One-line script
 
@@ -97,7 +91,7 @@ Token totals are parsed once and **cached per file** (size + mtime), so each tic
 - [x] Non-notch Macs (flat bar)
 - [x] Update checks
 - [x] Homebrew cask
-- [ ] 🔔 **Desktop popup when a session finishes — _next up_.** Agents rarely tell you the moment a long task is done; Seeybot will pop a notification the second a session goes from *working* to idle.
+- [ ] 🔔 **Desktop popup when a session finishes — _next up_.** Agents rarely tell you the moment a long task is done; Seeubot will pop a notification the second a session goes from *working* to idle.
 - [ ] 🔌 More AI CLIs — Cursor, Aider, Gemini CLI, Cline, opencode…
 - [ ] ⚙️ Configurable refresh interval & "working" window
 - [ ] 💵 Cost estimation (tokens → $ per model)
@@ -107,10 +101,9 @@ Token totals are parsed once and **cached per file** (size + mtime), so each tic
 ## Uninstall
 
 ```bash
-launchctl unload ~/Library/LaunchAgents/com.seeybot.notch.plist 2>/dev/null
-rm -f ~/Library/LaunchAgents/com.seeybot.notch.plist
-rm -rf /Applications/Seeybot.app
-# or, if installed via Homebrew:  brew uninstall --cask seeybot
+launchctl unload ~/Library/LaunchAgents/com.chestonchen.seeubot.plist 2>/dev/null
+rm -f ~/Library/LaunchAgents/com.chestonchen.seeubot.plist
+rm -rf /Applications/Seeubot.app
 ```
 
 ## FAQ

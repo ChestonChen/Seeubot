@@ -1,20 +1,20 @@
 ---
-name: seeybot-release
-description: Reference for the Seeybot project (what it is, architecture, data sources, gotchas) and the runbook for cutting a new release — version bump, CHANGELOG + README roadmap + website changelog, build & package, GitHub Release, and Homebrew cask update. Use when working on, updating, or releasing Seeybot.
+name: seeubot-release
+description: Reference for the Seeubot project (what it is, architecture, data sources, gotchas) and the runbook for cutting a new release — version bump, CHANGELOG + README roadmap + website changelog, build & package, and GitHub Release. Use when working on, updating, or releasing Seeubot.
 ---
 
-# Seeybot — project reference & release runbook
+# Seeubot — project reference & release runbook
 
-## What Seeybot is
+## What Seeubot is
 A native SwiftUI **macOS notch/Dynamic-Island widget** that shows live stats for local
 **Claude Code** and **Codex** CLI sessions: session count, working vs idle, and token
 usage — as a cute animated dashboard. Reads only local files; no network. Single
 `swiftc`-built binary, **no Xcode**.
 
-- Repo: <https://github.com/7757/Seeybot>  · author **musk** = <https://github.com/7757>
-- Homebrew tap (separate repo): <https://github.com/7757/homebrew-seeybot> → `brew install --cask 7757/seeybot/seeybot`
+- Repo: <https://github.com/ChestonChen/Seeubot> · maintainer **ChestonChen** = <https://github.com/ChestonChen>
+- Homebrew tap: not published for this fork yet. Prefer the one-line install script until a tap exists.
 - Website (GitHub Pages, this repo `index.html`): served from `main` / root
-- Bundle id `com.seeybot.notch`; ad-hoc signed (no Apple Developer account → Gatekeeper handled by stripping quarantine)
+- Bundle id `com.chestonchen.seeubot`; ad-hoc signed (no Apple Developer account → Gatekeeper handled by stripping quarantine)
 
 ## Architecture (`Sources/`)
 - `SessionCollector.swift` — scans `~/.claude/projects/**/<uuid>.jsonl` and
@@ -46,7 +46,7 @@ usage — as a cute animated dashboard. Reads only local files; no network. Sing
 - Build with `./build.sh` (needs Command Line Tools `swiftc`, no Xcode).
 
 ## Commit / author convention
-- **Commits must NOT include a `Co-Authored-By: Claude` trailer.** Author is musk only.
+- **Commits should not include a `Co-Authored-By: Claude` trailer.**
 - UI text is **English**; docs are multi-language (`README.md` EN, `README.zh-CN.md`, `README.ja.md`) — keep them in sync. Website (`index.html`) is currently Chinese-first.
 
 ## Cutting a release (vX.Y)
@@ -56,22 +56,19 @@ usage — as a cute animated dashboard. Reads only local files; no network. Sing
 4. Build & package:
    ```bash
    ./build.sh
-   ditto -c -k --keepParent build/Seeybot.app Seeybot.zip
-   SHA=$(shasum -a 256 Seeybot.zip | awk '{print $1}')
+   ditto -c -k --keepParent build/Seeubot.app Seeubot.zip
+   SHA=$(shasum -a 256 Seeubot.zip | awk '{print $1}')
    ```
 5. Publish the GitHub Release:
    ```bash
-   gh release create vX.Y Seeybot.zip --repo 7757/Seeybot --title "Seeybot X.Y" --notes "…from CHANGELOG…"
+   gh release create vX.Y Seeubot.zip --repo ChestonChen/Seeubot --title "Seeubot X.Y" --notes "…from CHANGELOG…"
    ```
-6. Update the **Homebrew cask** in the tap repo `7757/homebrew-seeybot`
-   (`Casks/seeybot.rb`): set `version "X.Y"` and the new `sha256`, commit & push. Verify:
-   `brew update && brew upgrade --cask seeybot`.
-7. Commit the app repo (no Claude trailer) and push `main`; GitHub Pages redeploys the site.
-8. `Updater.checkLatest` (repo `7757/Seeybot`) will then surface the new version to users
+6. Commit the app repo and push `main`; GitHub Pages redeploys the site.
+7. `Updater.checkLatest` (repo `ChestonChen/Seeubot`) will then surface the new version to users
    as a badge + menu item pointing at the Releases page.
 
 ## Handy commands
 - `./install.sh` — build from source, install to /Applications, LaunchAgent auto-start.
-- `Seeybot --stats` / `Seeybot --render <dir>` — debug the collector / render UI states.
+- `Seeubot --stats` / `Seeubot --render <dir>` — debug the collector / render UI states.
 - Quit a running copy: menu-bar icon or the in-widget `⋯` → Quit; or
-  `launchctl unload ~/Library/LaunchAgents/com.seeybot.notch.plist; pkill Seeybot`.
+  `launchctl unload ~/Library/LaunchAgents/com.chestonchen.seeubot.plist; pkill Seeubot`.

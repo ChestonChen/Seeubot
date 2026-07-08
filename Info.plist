@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleName</key>
-	<string>Seeybot</string>
+	<string>Seeubot</string>
 	<key>CFBundleDisplayName</key>
-	<string>Seeybot</string>
+	<string>Seeubot</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.seeybot.notch</string>
+	<string>com.chestonchen.seeubot</string>
 	<key>CFBundleExecutable</key>
-	<string>Seeybot</string>
+	<string>Seeubot</string>
 	<key>CFBundleIconFile</key>
 	<string>AppIcon</string>
 	<key>CFBundleVersion</key>

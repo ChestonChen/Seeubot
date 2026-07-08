@@ -2,7 +2,7 @@ import Foundation
 
 /// Checks GitHub Releases for a newer version and reports the tag if one exists.
 enum Updater {
-    static let repo = "7757/Seeybot"
+    static let repo = "ChestonChen/Seeubot"
 
     static var currentVersion: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"

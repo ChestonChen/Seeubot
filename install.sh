@@ -1,5 +1,5 @@
 #!/bin/bash
-# Seeybot installer — build from source, install to /Applications, auto-start at login.
+# Seeubot installer — build from source, install to /Applications, auto-start at login.
 #
 # One-line install (no clone needed):
 #   curl -fsSL https://raw.githubusercontent.com/ChestonChen/Seeubot/main/install.sh | bash
@@ -7,15 +7,16 @@
 # Or from a checkout:  ./install.sh
 set -euo pipefail
 
+APP_NAME="Seeubot"
 REPO_URL="https://github.com/ChestonChen/Seeubot"
-LABEL="com.seeybot.notch"
+LABEL="com.chestonchen.seeubot"
 AGENT="$HOME/Library/LaunchAgents/$LABEL.plist"
 
 # --- Self-bootstrap: if we're not inside a checkout, clone it first. ------------
 SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || echo '.')"
 if [ ! -d "$SELF_DIR/Sources" ]; then
-  echo "▸ Fetching Seeybot…"
-  TMP="$(mktemp -d)/Seeybot"
+  echo "▸ Fetching $APP_NAME…"
+  TMP="$(mktemp -d)/$APP_NAME"
   git clone --depth 1 "$REPO_URL" "$TMP" >/dev/null 2>&1
   exec bash "$TMP/install.sh"
 fi
@@ -34,22 +35,22 @@ echo "  ✓ built"
 
 # Stop any running copy / previously installed agent.
 launchctl unload "$AGENT" 2>/dev/null || true
-pkill -x Seeybot 2>/dev/null || true
+pkill -x "$APP_NAME" 2>/dev/null || true
 sleep 0.4
 
 # Install to /Applications, falling back to ~/Applications if it isn't writable.
-if APP_DST="/Applications/Seeybot.app"; rm -rf "$APP_DST" 2>/dev/null && cp -R "$ROOT/build/Seeybot.app" "$APP_DST" 2>/dev/null; then
-  echo "▸ Installed to /Applications/Seeybot.app"
+if APP_DST="/Applications/$APP_NAME.app"; rm -rf "$APP_DST" 2>/dev/null && cp -R "$ROOT/build/$APP_NAME.app" "$APP_DST" 2>/dev/null; then
+  echo "▸ Installed to /Applications/$APP_NAME.app"
 else
   mkdir -p "$HOME/Applications"
-  APP_DST="$HOME/Applications/Seeybot.app"
-  rm -rf "$APP_DST"; cp -R "$ROOT/build/Seeybot.app" "$APP_DST"
-  echo "▸ /Applications not writable — installed to ~/Applications/Seeybot.app"
+  APP_DST="$HOME/Applications/$APP_NAME.app"
+  rm -rf "$APP_DST"; cp -R "$ROOT/build/$APP_NAME.app" "$APP_DST"
+  echo "▸ /Applications not writable — installed to ~/Applications/$APP_NAME.app"
 fi
 
 codesign --force --deep --sign - "$APP_DST" >/dev/null 2>&1 || true
 xattr -dr com.apple.quarantine "$APP_DST" 2>/dev/null || true
-BIN="$APP_DST/Contents/MacOS/Seeybot"
+BIN="$APP_DST/Contents/MacOS/$APP_NAME"
 
 echo "▸ Creating login agent (auto-start; restart only on crash)…"
 mkdir -p "$HOME/Library/LaunchAgents"
@@ -73,8 +74,8 @@ PLIST
 launchctl load -w "$AGENT" 2>/dev/null || launchctl load "$AGENT"
 sleep 1.2
 
-if pgrep -x Seeybot >/dev/null; then
-  echo "✓ Seeybot is installed and running (look for the gauge icon in your menu bar)."
+if pgrep -x "$APP_NAME" >/dev/null; then
+  echo "✓ $APP_NAME is installed and running (look for the gauge icon in your menu bar)."
   echo "  It will start automatically at login. Quit any time from the menu-bar icon."
 else
   echo "  agent loaded; launching directly…"; open "$APP_DST"

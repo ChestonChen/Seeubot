@@ -24,7 +24,7 @@ enum Mood {
     }
 }
 
-/// The Seeybot mascot: a cute white robot head drawn with Canvas. It blinks, glances
+/// The Seeubot mascot: a cute white robot head drawn with Canvas. It blinks, glances
 /// around, tilts its head, breathes, bobs, occasionally hops or wiggles, sways its
 /// antenna, and — when work is happening — chatters its mouth and throws off sparkles.
 struct MascotView: View {

@@ -3,7 +3,7 @@ import SwiftUI
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    static let homepage = "https://github.com/7757/Seeybot"
+    static let homepage = "https://github.com/ChestonChen/Seeubot"
 
     private var panel: NotchPanel!
     private var store: StatsStore!
@@ -71,8 +71,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupMenuBar() {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let img = NSImage(systemSymbolName: "gauge.with.dots.needle.bottom.50percent",
-                             accessibilityDescription: "Seeybot")
-                     ?? NSImage(systemSymbolName: "gauge.medium", accessibilityDescription: "Seeybot") {
+                             accessibilityDescription: "Seeubot")
+                     ?? NSImage(systemSymbolName: "gauge.medium", accessibilityDescription: "Seeubot") {
             img.isTemplate = true
             item.button?.image = img
         } else {
@@ -82,7 +82,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let menu = NSMenu()
         menu.delegate = self
 
-        let header = NSMenuItem(title: "Seeybot", action: nil, keyEquivalent: "")
+        let header = NSMenuItem(title: "Seeubot", action: nil, keyEquivalent: "")
         header.isEnabled = false
         menu.addItem(header); headerItem = header
         menu.addItem(.separator())
@@ -103,7 +103,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let gh = NSMenuItem(title: "Homepage…", action: #selector(openHomepage), keyEquivalent: "")
         gh.target = self; menu.addItem(gh)
-        let quit = NSMenuItem(title: "Quit Seeybot", action: #selector(quit), keyEquivalent: "q")
+        let quit = NSMenuItem(title: "Quit Seeubot", action: #selector(quit), keyEquivalent: "q")
         quit.target = self; menu.addItem(quit)
 
         item.menu = menu
@@ -200,7 +200,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.ignoresMouseEvents = !inside
         if inside != store.hover {
             store.hover = inside
-            if ProcessInfo.processInfo.environment["SEEYBOT_DEBUG"] != nil {
+            if ProcessInfo.processInfo.environment["SEEUBOT_DEBUG"] != nil {
                 FileHandle.standardError.write(
                     "hover=\(inside) mouse=\(Int(mouse.x)),\(Int(mouse.y))\n"
                         .data(using: .utf8)!)
@@ -212,7 +212,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 extension AppDelegate: NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
         let s = store.stats
-        headerItem?.title = "Seeybot · \(s.totalWorking) working · \(s.totalIdle) idle"
+        headerItem?.title = "Seeubot · \(s.totalWorking) working · \(s.totalIdle) idle"
 
         // The form switch only makes sense on a notched Mac.
         let notch = store.metrics.hasNotch
