@@ -1,6 +1,9 @@
 # Build output
 build/
 *.app
+apps/windows/dist/
+apps/windows/node_modules/
+apps/windows/src-tauri/target/
 
 # macOS
 .DS_Store
