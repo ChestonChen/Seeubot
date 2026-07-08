@@ -1,0 +1,23 @@
+[package]
+name = "seeubot-windows"
+version = "0.1.0"
+description = "Seeubot Windows floating AI session monitor"
+authors = ["ChestonChen"]
+license = "MIT"
+repository = "https://github.com/ChestonChen/Seeubot"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "1.5", features = [] }
+
+[dependencies]
+chrono = { version = "0.4", features = ["serde"] }
+dirs = "5"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri = { version = "1.6", features = ["shell-open", "system-tray", "window-set-position", "window-set-size", "window-show", "window-hide"] }
+uuid = { version = "1", features = ["v4"] }
+walkdir = "2"
+
+[features]
+custom-protocol = ["tauri/custom-protocol"]

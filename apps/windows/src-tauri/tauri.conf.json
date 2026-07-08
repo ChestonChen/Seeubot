@@ -1,0 +1,64 @@
+{
+  "$schema": "https://schema.tauri.app/config/1",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devPath": "http://127.0.0.1:5173",
+    "distDir": "../dist"
+  },
+  "package": {
+    "productName": "Seeubot",
+    "version": "0.1.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": false,
+      "shell": {
+        "all": false,
+        "open": true
+      },
+      "window": {
+        "all": false,
+        "setPosition": true,
+        "setSize": true,
+        "show": true,
+        "hide": true
+      }
+    },
+    "bundle": {
+      "active": true,
+      "category": "Utility",
+      "copyright": "Copyright © ChestonChen",
+      "identifier": "com.chestonchen.seeubot.windows",
+      "targets": ["nsis"],
+      "windows": {
+        "webviewInstallMode": {
+          "type": "downloadBootstrapper"
+        }
+      }
+    },
+    "security": {
+      "csp": null
+    },
+    "systemTray": {
+      "iconPath": "../../../docs/favicon.png",
+      "iconAsTemplate": false
+    },
+    "windows": [
+      {
+        "label": "main",
+        "title": "Seeubot",
+        "width": 260,
+        "height": 72,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "resizable": false,
+        "visible": true,
+        "center": false,
+        "fullscreen": false
+      }
+    ]
+  }
+}

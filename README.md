@@ -9,6 +9,7 @@
 **English** · [简体中文](README.zh-CN.md) · [日本語](README.ja.md)
 
 ![macOS](https://img.shields.io/badge/macOS-14%2B-black?logo=apple)
+![Windows](https://img.shields.io/badge/Windows-planned%20preview-0078D4?logo=windows)
 ![Swift](https://img.shields.io/badge/Swift-SwiftUI-orange?logo=swift)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 ![No Xcode](https://img.shields.io/badge/build-no%20Xcode%20needed-brightgreen)
@@ -41,6 +42,8 @@ Everything is read **locally** from the session files Claude Code and Codex alre
 
 ## Install
 
+### macOS
+
 ### One-line script
 
 Builds from source, installs to `/Applications`, starts now and auto-starts at login:
@@ -57,6 +60,21 @@ cd Seeubot && ./install.sh
 ```
 
 > Apple-silicon Mac, **macOS 14+**, with the Command Line Tools (`xcode-select --install`). No Xcode required.
+
+### Windows preview
+
+Windows source is isolated under `apps/windows/` and keeps the same product idea: a floating Dynamic-Island style pill near the top of the screen, expanding into the dashboard on hover.
+
+```powershell
+iwr -useb https://raw.githubusercontent.com/ChestonChen/Seeubot/main/install.ps1 | iex
+```
+
+The Windows installer prefers a GitHub Release package, then falls back to the checked-in Windows zip under `apps/windows/release/`. Source builds are still available for contributors with Git, Node.js and Rust.
+
+## Source layout
+
+- macOS source: `Sources/`, `build.sh`, `install.sh`
+- Windows source: `apps/windows/`
 
 ## Usage
 
