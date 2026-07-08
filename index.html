@@ -42,8 +42,10 @@
   nav.scrolled{padding-top:12px}
   .nav-in{display:flex; align-items:center; justify-content:space-between; height:64px; transition:.35s ease; max-width:var(--maxw); margin:0 auto; padding:0 24px}
   nav.scrolled .nav-in{max-width:min(860px, calc(100% - 40px)); height:54px; padding:0 10px 0 20px;
-    background:rgba(14,14,18,.72); backdrop-filter:blur(18px); border:1px solid var(--line);
-    border-radius:999px; box-shadow:0 14px 44px rgba(0,0,0,.45)}
+    background:linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.06)), rgba(18,18,22,.58);
+    backdrop-filter:saturate(180%) blur(26px); -webkit-backdrop-filter:saturate(180%) blur(26px);
+    border:1px solid rgba(255,255,255,.16); border-radius:999px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.18), 0 18px 50px rgba(0,0,0,.42)}
   .brand{display:flex; align-items:center; gap:10px; font-family:"Space Grotesk"; font-weight:600; font-size:16.5px}
   .brand img{width:28px; height:28px; border-radius:8px}
   .nav-links{display:flex; align-items:center; gap:22px; font-size:14px; color:var(--muted)}
@@ -179,17 +181,7 @@
     <h1 class="reveal">你的 AI 会话，<br/><span class="accent">就在刘海里。</span></h1>
     <p class="sub reveal">Seeubot 把 MacBook 刘海变成 AI 编程会话的实时看板 —— 多少在工作、多少空闲、一共烧了多少 token。</p>
     <div class="hero-cta reveal">
-      <button class="cmd" data-copy="brew install --cask 7757/seeubot/seeubot">brew install --cask 7757/seeubot/seeubot <span class="copy">复制</span></button>
       <a class="btn btn-ghost" href="https://github.com/7757/Seeubot" target="_blank" rel="noopener">在 GitHub 点星</a>
-    </div>
-    <div class="stats reveal" title="数据来自 GoatCounter">
-      <div class="seg">
-        <button class="on" data-range="total">总计</button>
-        <button data-range="today">今日</button>
-      </div>
-      <div class="stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="2.5"/></svg><b id="s-views">—</b><span>浏览</span></div>
-      <span class="dot-sep"></span>
-      <div class="stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20c.7-3.5 3.3-5.2 6.5-5.2s5.8 1.7 6.5 5.2"/></svg><b id="s-visitors">—</b><span>访客</span></div>
     </div>
   </div>
   <div class="stage reveal">
@@ -310,23 +302,9 @@
   document.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click',async()=>{
     try{await navigator.clipboard.writeText(b.dataset.copy); const s=b.querySelector('.copy'); if(s){const t=s.textContent; s.textContent='已复制'; setTimeout(()=>s.textContent=t,1400)}}catch(e){}
   }));
-  // live visitor stats from GoatCounter (pageviews + unique, today / total)
-  const GC='https://seeubot.goatcounter.com/counter/TOTAL.json';
-  const p2=n=>String(n).padStart(2,'0'); const now=new Date();
-  const TODAY=now.getFullYear()+'-'+p2(now.getMonth()+1)+'-'+p2(now.getDate());
-  function gcLoad(range){
-    const url = range==='today' ? GC+'?start='+TODAY : GC;
-    fetch(url).then(r=>r.ok?r.json():Promise.reject()).then(d=>{
-      const v=document.getElementById('s-views'), u=document.getElementById('s-visitors');
-      if(v) v.textContent=d.count; if(u) u.textContent=d.count_unique;
-      if(range!=='today'){const f=document.getElementById('gc-count'); if(f) f.textContent=d.count_unique;}
-    }).catch(()=>{});
-  }
-  document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{
-    document.querySelectorAll('.seg button').forEach(x=>x.classList.toggle('on',x===b));
-    gcLoad(b.dataset.range);
-  }));
-  gcLoad('total');
+  fetch('https://seeubot.goatcounter.com/counter/TOTAL.json').then(r=>r.ok?r.json():Promise.reject()).then(d=>{
+    const f=document.getElementById('gc-count'); if(f) f.textContent=d.count_unique;
+  }).catch(()=>{});
 </script>
 <script data-goatcounter="https://seeubot.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
