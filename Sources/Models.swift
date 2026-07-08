@@ -2,24 +2,15 @@ import Foundation
 
 // MARK: - Core domain models shared by the collector and the UI.
 
-enum Tool: String, Codable, CaseIterable {
-    case claude
-    case codex
+struct AgentDescriptor: Codable, Equatable, Hashable, Identifiable {
+    var id: String
+    var display: String
+    /// Short glyph used in the collapsed pill and dashboard rows.
+    var glyph: String
 
-    var display: String {
-        switch self {
-        case .claude: return "Claude"
-        case .codex:  return "Codex"
-        }
-    }
-
-    /// Short glyph used in the collapsed pill.
-    var glyph: String {
-        switch self {
-        case .claude: return "✦"
-        case .codex:  return "◆"
-        }
-    }
+    static let claude = AgentDescriptor(id: "claude", display: "Claude", glyph: "✦")
+    static let codex = AgentDescriptor(id: "codex", display: "Codex", glyph: "◆")
+    static let cursor = AgentDescriptor(id: "cursor", display: "Cursor", glyph: "C")
 }
 
 enum SessionState: String, Codable {
@@ -41,7 +32,7 @@ enum WidgetMode: String, Codable, CaseIterable {
 struct LiveSession: Codable, Identifiable, Equatable {
     var id: String            // stable id: "\(tool)-\(pid)"
     var pid: Int
-    var tool: Tool
+    var tool: AgentDescriptor
     var project: String       // last path component of the working dir
     var cwd: String
     var state: SessionState
@@ -80,7 +71,7 @@ struct TokenBreakdown: Codable, Equatable {
 
 /// Aggregate numbers for a single tool.
 struct ToolStat: Codable, Equatable {
-    var tool: Tool
+    var tool: AgentDescriptor
     var live: Int
     var working: Int
     var idle: Int
@@ -109,8 +100,8 @@ struct DashStats: Codable, Equatable {
         sessionsAllTime: 0, updatedAtEpoch: 0
     )
 
-    func stat(for tool: Tool) -> ToolStat {
-        perTool.first { $0.tool == tool }
+    func stat(for tool: AgentDescriptor) -> ToolStat {
+        perTool.first { $0.tool.id == tool.id }
             ?? ToolStat(tool: tool, live: 0, working: 0, idle: 0,
                         tokensAllTime: TokenBreakdown(), tokensToday: TokenBreakdown(),
                         sessionsAllTime: 0)

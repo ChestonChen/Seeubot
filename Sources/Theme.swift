@@ -23,6 +23,8 @@ enum Palette {
     static let claudeDeep   = Color(red: 0.92, green: 0.33, blue: 0.20)
     static let codex        = Color(red: 0.37, green: 0.90, blue: 0.80)   // mint/teal
     static let codexDeep    = Color(red: 0.09, green: 0.72, blue: 0.64)
+    static let cursor       = Color(red: 0.62, green: 0.68, blue: 1.00)   // cool violet-blue
+    static let cursorDeep   = Color(red: 0.37, green: 0.42, blue: 0.92)
 
     // Token buckets
     static let tOutput      = Color(red: 0.35, green: 0.87, blue: 0.53)
@@ -30,10 +32,24 @@ enum Palette {
     static let tCacheCreate = Color(red: 0.72, green: 0.55, blue: 1.00)
     static let tCacheRead   = Color(red: 0.36, green: 0.45, blue: 0.55)
 
-    static func tool(_ t: Tool) -> Color { t == .claude ? claude : codex }
-    static func toolDeep(_ t: Tool) -> Color { t == .claude ? claudeDeep : codexDeep }
+    static func tool(_ t: AgentDescriptor) -> Color {
+        switch t.id {
+        case AgentDescriptor.claude.id: return claude
+        case AgentDescriptor.codex.id: return codex
+        case AgentDescriptor.cursor.id: return cursor
+        default: return inkDim
+        }
+    }
+    static func toolDeep(_ t: AgentDescriptor) -> Color {
+        switch t.id {
+        case AgentDescriptor.claude.id: return claudeDeep
+        case AgentDescriptor.codex.id: return codexDeep
+        case AgentDescriptor.cursor.id: return cursorDeep
+        default: return inkFaint
+        }
+    }
 
-    static func gradient(_ t: Tool) -> LinearGradient {
+    static func gradient(_ t: AgentDescriptor) -> LinearGradient {
         LinearGradient(colors: [tool(t), toolDeep(t)],
                        startPoint: .topLeading, endPoint: .bottomTrailing)
     }

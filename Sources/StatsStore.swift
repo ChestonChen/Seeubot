@@ -28,14 +28,14 @@ final class StatsStore: ObservableObject {
     private var timer: Timer?
     private let interval: TimeInterval
 
-    init(interval: TimeInterval = 3, metrics: NotchMetrics) {
+    init(interval: TimeInterval = 1, metrics: NotchMetrics) {
         self.interval = interval
         self.metrics = metrics
         refresh()
         let t = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
             self?.refresh()
         }
-        t.tolerance = 0.5
+        t.tolerance = 0.1
         RunLoop.main.add(t, forMode: .common)
         timer = t
     }
