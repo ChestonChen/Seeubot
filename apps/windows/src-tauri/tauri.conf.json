@@ -48,8 +48,8 @@
       {
         "label": "main",
         "title": "Seeubot",
-        "width": 260,
-        "height": 72,
+        "width": 244,
+        "height": 46,
         "decorations": false,
         "transparent": true,
         "alwaysOnTop": true,

@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/tauri";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { compact, toolColor, toolGradient, totalTokens } from "./format";
+import MascotCanvas, { type Mood } from "./MascotCanvas";
 import { emptyStats, type DashStats, type LiveSession, type TokenBreakdown, type ToolStat } from "./types";
 import { setIslandFrame } from "./windowFrame";
 
@@ -42,15 +43,22 @@ export default function App() {
 
   return (
     <main className={`island ${expanded ? "expanded" : "collapsed"}`} onMouseEnter={enter} onMouseLeave={leave}>
-      {expanded ? <Dashboard stats={stats} /> : <CollapsedPill stats={stats} />}
+      <CollapsedPill stats={stats} />
+      <Dashboard stats={stats} />
     </main>
   );
+}
+
+function moodFromStats(stats: DashStats): Mood {
+  if (stats.totalWorking > 0) return "excited";
+  if (stats.totalLive > 0) return "idle";
+  return "sleeping";
 }
 
 function CollapsedPill({ stats }: { stats: DashStats }) {
   return (
     <section className="pill">
-      <Mascot small />
+      <MascotCanvas mood={moodFromStats(stats)} size={23} />
       <div className="pillMetrics">
         <MiniMetric label="Sessions" value={stats.totalLive} color="var(--ink)" />
         <MiniMetric label="Working" value={stats.totalWorking} color="var(--working)" pulse={stats.totalWorking > 0} />
@@ -74,7 +82,7 @@ function Dashboard({ stats }: { stats: DashStats }) {
   return (
     <section className="dashboard">
       <header className="header">
-        <Mascot />
+        <MascotCanvas mood={moodFromStats(stats)} size={34} />
         <div>
           <h1>Seeubot</h1>
           <p>AI SESSION MONITOR</p>
@@ -104,18 +112,6 @@ function Dashboard({ stats }: { stats: DashStats }) {
         <span>{toolList}</span>
       </footer>
     </section>
-  );
-}
-
-function Mascot({ small = false }: { small?: boolean }) {
-  return (
-    <div className={small ? "mascot small" : "mascot"}>
-      <span className="antenna" />
-      <span className="eye left" />
-      <span className="eye right" />
-      <span className="cheek left" />
-      <span className="cheek right" />
-    </div>
   );
 }
 
