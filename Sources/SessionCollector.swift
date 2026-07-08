@@ -13,6 +13,9 @@ final class SessionCollector {
     /// If Cursor has started a turn but has not appended `turn_ended`, keep the
     /// session working even if no transcript bytes are written during a long tool run.
     static let cursorOpenTurnWindow: TimeInterval = 30 * 60
+    /// A finished Cursor turn stays visible briefly as idle, then drops out of
+    /// the live session list while its aggregate usage remains counted.
+    static let cursorIdleRetentionWindow: TimeInterval = 10 * 60
 
     private let home = NSHomeDirectory()
 
@@ -481,12 +484,18 @@ final class SessionCollector {
 
     private func cursorTranscriptSessions(now: TimeInterval, infoByPath: [String: FileInfo],
                                           claimed: Set<String>) -> [LiveSession] {
-        let recentWindow: TimeInterval = 6 * 3600
         let cursorInfos = infoByPath
             .filter { path, info in
-                info.agentID == AgentDescriptor.cursor.id
-                    && !claimed.contains(path)
-                    && now - info.mtime <= recentWindow
+                guard info.agentID == AgentDescriptor.cursor.id, !claimed.contains(path) else { return false }
+                let idleSeconds = max(0, now - info.mtime)
+                switch cursorTranscriptOpenTurn(path) {
+                case .some(true):
+                    return idleSeconds < Self.cursorOpenTurnWindow
+                case .some(false):
+                    return idleSeconds < Self.cursorIdleRetentionWindow
+                case .none:
+                    return idleSeconds < Self.cursorWorkingWindow
+                }
             }
             .sorted { $0.value.mtime > $1.value.mtime }
 
