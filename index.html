@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Seeybot — 你的 AI 会话，就在刘海里</title>
-<meta name="description" content="Seeybot 把 MacBook 刘海变成 Claude Code 与 Codex 的实时看板——多少会话在工作、多少空闲、烧了多少 token。" />
-<meta property="og:title" content="Seeybot — 你的 AI 会话，就在刘海里" />
+<title>Seeubot — 你的 AI 会话，就在刘海里</title>
+<meta name="description" content="Seeubot 把 MacBook 刘海变成 Claude Code 与 Codex 的实时看板——多少会话在工作、多少空闲、烧了多少 token。" />
+<meta property="og:title" content="Seeubot — 你的 AI 会话，就在刘海里" />
 <meta property="og:description" content="贴在 Mac 刘海上的可爱灵动岛小组件，实时统计你的 Claude Code 与 Codex 会话。" />
-<meta property="og:image" content="https://raw.githubusercontent.com/7757/Seeybot/main/docs/hero-poster.jpg" />
+<meta property="og:image" content="https://raw.githubusercontent.com/7757/Seeubot/main/docs/hero-poster.jpg" />
 <link rel="icon" type="image/png" sizes="180x180" href="docs/favicon.png" />
 <link rel="apple-touch-icon" href="docs/favicon.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -155,21 +155,21 @@
 <div class="bg"></div><div class="grain"></div>
 
 <nav id="nav"><div class="wrap nav-in">
-  <a class="brand" href="#top"><img src="docs/favicon.png" alt=""/> Seeybot</a>
+  <a class="brand" href="#top"><img src="docs/favicon.png" alt=""/> Seeubot</a>
   <div class="nav-links">
     <a href="#features">功能</a>
     <a href="#how">原理</a>
     <a href="#changelog">更新日志</a>
-    <a href="https://github.com/7757/Seeybot" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://github.com/7757/Seeubot" target="_blank" rel="noopener">GitHub</a>
     <div class="langsel">
       <button class="langbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18"/></svg>中文</button>
       <div class="langmenu">
         <a class="on" href="index.html">中文</a>
-        <a href="https://github.com/7757/Seeybot#readme">English</a>
-        <a href="https://github.com/7757/Seeybot/blob/main/README.ja.md">日本語</a>
+        <a href="https://github.com/7757/Seeubot#readme">English</a>
+        <a href="https://github.com/7757/Seeubot/blob/main/README.ja.md">日本語</a>
       </div>
     </div>
-    <a class="btn btn-primary" href="#install">获取 Seeybot</a>
+    <a class="btn btn-primary" href="#install">获取 Seeubot</a>
   </div>
 </div></nav>
 
@@ -177,10 +177,10 @@
   <div class="wrap">
     <div class="kicker reveal"><span class="dot"></span> 为 Claude Code &amp; Codex 打造 · macOS</div>
     <h1 class="reveal">你的 AI 会话，<br/><span class="accent">就在刘海里。</span></h1>
-    <p class="sub reveal">Seeybot 把 MacBook 刘海变成 AI 编程会话的实时看板 —— 多少在工作、多少空闲、一共烧了多少 token。</p>
+    <p class="sub reveal">Seeubot 把 MacBook 刘海变成 AI 编程会话的实时看板 —— 多少在工作、多少空闲、一共烧了多少 token。</p>
     <div class="hero-cta reveal">
-      <button class="cmd" data-copy="brew install --cask 7757/seeybot/seeybot">brew install --cask 7757/seeybot/seeybot <span class="copy">复制</span></button>
-      <a class="btn btn-ghost" href="https://github.com/7757/Seeybot" target="_blank" rel="noopener">在 GitHub 点星</a>
+      <button class="cmd" data-copy="brew install --cask 7757/seeubot/seeubot">brew install --cask 7757/seeubot/seeubot <span class="copy">复制</span></button>
+      <a class="btn btn-ghost" href="https://github.com/7757/Seeubot" target="_blank" rel="noopener">在 GitHub 点星</a>
     </div>
     <div class="stats reveal" title="数据来自 GoatCounter">
       <div class="seg">
@@ -245,7 +245,7 @@
         <div class="datarow reveal"><div class="k">工作中</div><div class="v">会话文件 45 秒内有写入 = 工作中，否则空闲。</div></div>
         <div class="privacy reveal">不联网 · 无 API Key · 无遥测</div>
       </div>
-      <div class="how-img reveal"><img src="docs/expanded.png" alt="Seeybot 看板"/></div>
+      <div class="how-img reveal"><img src="docs/expanded.png" alt="Seeubot 看板"/></div>
     </div>
   </div>
 </section>
@@ -280,9 +280,9 @@
     <p class="lead center reveal">Apple 芯片 Mac、macOS 14+、已装命令行工具。无需 Xcode。</p>
     <div class="install-box reveal">
       <div class="lbl">Homebrew</div>
-      <button class="cmd" data-copy="brew install --cask 7757/seeybot/seeybot">brew install --cask 7757/seeybot/seeybot <span class="copy">复制</span></button>
+      <button class="cmd" data-copy="brew install --cask 7757/seeubot/seeubot">brew install --cask 7757/seeubot/seeubot <span class="copy">复制</span></button>
       <div class="or">—— 或一行脚本 ——</div>
-      <button class="cmd" data-copy="curl -fsSL https://raw.githubusercontent.com/7757/Seeybot/main/install.sh | bash">curl -fsSL https://raw.githubusercontent.com/7757/Seeybot/main/install.sh | bash <span class="copy">复制</span></button>
+      <button class="cmd" data-copy="curl -fsSL https://raw.githubusercontent.com/7757/Seeubot/main/install.sh | bash">curl -fsSL https://raw.githubusercontent.com/7757/Seeubot/main/install.sh | bash <span class="copy">复制</span></button>
     </div>
   </div>
 </section>
@@ -290,15 +290,15 @@
 <footer>
   <div class="wrap">
     <div class="foot">
-      <a class="brand" href="#top"><img src="docs/favicon.png" style="width:26px;height:26px;border-radius:7px" alt=""/> Seeybot</a>
+      <a class="brand" href="#top"><img src="docs/favicon.png" style="width:26px;height:26px;border-radius:7px" alt=""/> Seeubot</a>
       <div class="foot-links">
-        <a href="https://github.com/7757/Seeybot" target="_blank" rel="noopener">GitHub</a>
-        <a href="https://github.com/7757/Seeybot/releases" target="_blank" rel="noopener">Releases</a>
+        <a href="https://github.com/7757/Seeubot" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/7757/Seeubot/releases" target="_blank" rel="noopener">Releases</a>
         <a href="#changelog">更新日志</a>
-        <a href="https://github.com/7757/Seeybot/blob/main/LICENSE" target="_blank" rel="noopener">MIT 许可</a>
+        <a href="https://github.com/7757/Seeubot/blob/main/LICENSE" target="_blank" rel="noopener">MIT 许可</a>
       </div>
     </div>
-    <div class="made">由 <a href="https://github.com/7757" target="_blank" rel="noopener">musk</a> 打造 · 在 <a href="https://github.com/7757/Seeybot" target="_blank" rel="noopener">GitHub</a> 开源 · <span class="visits" title="累计访客"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="2.5"/></svg><b id="gc-count">—</b> 访客</span></div>
+    <div class="made">由 <a href="https://github.com/7757" target="_blank" rel="noopener">musk</a> 打造 · 在 <a href="https://github.com/7757/Seeubot" target="_blank" rel="noopener">GitHub</a> 开源 · <span class="visits" title="累计访客"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="2.5"/></svg><b id="gc-count">—</b> 访客</span></div>
   </div>
 </footer>
 
@@ -311,7 +311,7 @@
     try{await navigator.clipboard.writeText(b.dataset.copy); const s=b.querySelector('.copy'); if(s){const t=s.textContent; s.textContent='已复制'; setTimeout(()=>s.textContent=t,1400)}}catch(e){}
   }));
   // live visitor stats from GoatCounter (pageviews + unique, today / total)
-  const GC='https://seeybot.goatcounter.com/counter/TOTAL.json';
+  const GC='https://seeubot.goatcounter.com/counter/TOTAL.json';
   const p2=n=>String(n).padStart(2,'0'); const now=new Date();
   const TODAY=now.getFullYear()+'-'+p2(now.getMonth()+1)+'-'+p2(now.getDate());
   function gcLoad(range){
@@ -328,6 +328,6 @@
   }));
   gcLoad('total');
 </script>
-<script data-goatcounter="https://seeybot.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<script data-goatcounter="https://seeubot.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
