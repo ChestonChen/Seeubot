@@ -60,6 +60,11 @@
   .btn{display:inline-flex; align-items:center; gap:8px; padding:9px 17px; border-radius:999px; font-weight:600; font-size:14px; transition:.2s; border:1px solid transparent; cursor:pointer}
   .btn-primary{background:var(--ink); color:#0a0a0c} .btn-primary:hover{transform:translateY(-1px)}
   .btn-ghost{border-color:var(--line); color:var(--ink)} .btn-ghost:hover{background:rgba(255,255,255,.05)}
+  .btn-glass{background:linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.045)), rgba(255,255,255,.035);
+    border-color:rgba(255,255,255,.14); backdrop-filter:saturate(170%) blur(18px); -webkit-backdrop-filter:saturate(170%) blur(18px);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.16), 0 12px 34px rgba(0,0,0,.28)}
+  .btn-glass:hover{background:linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.06)), rgba(255,255,255,.05);
+    border-color:rgba(255,255,255,.22); transform:translateY(-1px)}
   @media(max-width:760px){.nav-links a:not(.btn),.langsel{display:none}}
 
   .hero{padding:158px 0 40px; text-align:center; position:relative}
@@ -161,27 +166,18 @@
   <div class="nav-links">
     <a href="#features">功能</a>
     <a href="#how">原理</a>
-    <a href="#changelog">更新日志</a>
     <a href="https://github.com/7757/Seeybot" target="_blank" rel="noopener">GitHub</a>
-    <div class="langsel">
-      <button class="langbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18"/></svg>中文</button>
-      <div class="langmenu">
-        <a class="on" href="index.html">中文</a>
-        <a href="https://github.com/7757/Seeybot#readme">English</a>
-        <a href="https://github.com/7757/Seeybot/blob/main/README.ja.md">日本語</a>
-      </div>
-    </div>
     <a class="btn btn-primary" href="#install">获取 Seeybot</a>
   </div>
 </div></nav>
 
 <header class="hero" id="top">
   <div class="wrap">
-    <div class="kicker reveal"><span class="dot"></span> 为 Claude Code &amp; Codex 打造 · macOS</div>
+    <div class="kicker reveal"><span class="dot"></span> 为 Claude Code、Codex &amp; Cursor 打造 · macOS</div>
     <h1 class="reveal">你的 AI 会话，<br/><span class="accent">就在刘海里。</span></h1>
     <p class="sub reveal">Seeybot 把 MacBook 刘海变成 AI 编程会话的实时看板 —— 多少在工作、多少空闲、一共烧了多少 token。</p>
     <div class="hero-cta reveal">
-      <a class="btn btn-ghost" href="https://github.com/7757/Seeybot" target="_blank" rel="noopener">在 GitHub 点星</a>
+      <a class="btn btn-ghost btn-glass" href="https://github.com/ChestonChen/Seeubot" target="_blank" rel="noopener">go to star GitHub</a>
     </div>
   </div>
   <div class="stage reveal">
@@ -242,29 +238,6 @@
   </div>
 </section>
 
-<section id="changelog">
-  <div class="wrap">
-    <div class="center" style="max-width:600px">
-      <div class="eyebrow reveal">更新日志</div>
-      <h2 class="reveal">一直在长大。</h2>
-    </div>
-    <div class="logs">
-      <div class="log reveal">
-        <div class="ver"><h3>v1.0</h3><span class="date">2026-07-06</span></div>
-        <ul>
-          <li>首个公开版本</li>
-          <li>刘海实时看板：会话数、工作/空闲、Token 明细（输出/输入/缓存）</li>
-          <li>会眨眼、摇头、蹦跳、冒星星的机器人吉祥物</li>
-          <li>两种形态（下挂 / 长条）+ 无刘海 Mac 自动平铺</li>
-          <li>菜单栏 + 组件内 <code>⋯</code> 控制：切换 / 显示隐藏 / 退出</li>
-          <li>Homebrew 一键安装、开机自启、版本更新提示</li>
-          <li>纯本地读取，零联网</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
 <section id="install">
   <div class="wrap center" style="max-width:720px">
     <div class="eyebrow reveal">获取</div>
@@ -286,7 +259,6 @@
       <div class="foot-links">
         <a href="https://github.com/7757/Seeybot" target="_blank" rel="noopener">GitHub</a>
         <a href="https://github.com/7757/Seeybot/releases" target="_blank" rel="noopener">Releases</a>
-        <a href="#changelog">更新日志</a>
         <a href="https://github.com/7757/Seeybot/blob/main/LICENSE" target="_blank" rel="noopener">MIT 许可</a>
       </div>
     </div>
