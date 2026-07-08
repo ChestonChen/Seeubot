@@ -127,7 +127,13 @@ struct DashboardBody: View {
         .background(
             ZStack {
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color.white.opacity(0.045))
+                    .fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(LinearGradient(
+                        colors: [Color.white.opacity(0.12), Color.white.opacity(0.03)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ))
                 RotatingAura(working: stats.totalWorking > 0)
                     .opacity(stats.totalWorking > 0 ? 0.9 : 0.35)
             }
@@ -135,7 +141,11 @@ struct DashboardBody: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(Palette.hairline, lineWidth: 1)
+                .stroke(Color.white.opacity(0.18), lineWidth: 1)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Palette.working.opacity(stats.totalWorking > 0 ? 0.22 : 0.12), lineWidth: 1.2)
         )
     }
 
