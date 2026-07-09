@@ -77,6 +77,37 @@ button {
   pointer-events: none;
 }
 
+.mascotRunway {
+  position: relative;
+  width: 96px;
+  height: 34px;
+  overflow: hidden;
+  flex: 0 0 96px;
+}
+
+.runwayBot {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 37px;
+  height: 39px;
+  transform: translateY(-50%);
+  will-change: transform;
+}
+
+.mascotRunway.active .runwayBot {
+  animation: botRunwayDrift 2.35s ease-in-out infinite alternate;
+}
+
+@keyframes botRunwayDrift {
+  from {
+    transform: translate3d(0, -50%, 0);
+  }
+  to {
+    transform: translate3d(58px, -50%, 0);
+  }
+}
+
 .dashboard {
   inset: 0;
   width: 100%;
@@ -113,19 +144,31 @@ button {
 .pillMetrics {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 12px;
+  margin-left: auto;
   min-width: 0;
+  flex: 0 0 auto;
 }
 
 .miniMetric {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
 }
 
 .miniMetric strong {
   font-size: 15px;
   line-height: 1;
+}
+
+.miniIcon {
+  width: 15px;
+  display: inline-grid;
+  place-items: center;
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 900;
+  text-shadow: 0 0 10px currentColor;
 }
 
 .header {

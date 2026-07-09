@@ -90,20 +90,25 @@ function moodFromStats(stats: DashStats): Mood {
 function CollapsedPill({ stats }: { stats: DashStats }) {
   return (
     <section className="pill">
-      <MascotCanvas mood={moodFromStats(stats)} size={23} />
+      <div className={stats.totalWorking > 0 ? "mascotRunway active" : "mascotRunway"}>
+        <div className="runwayBot">
+          <MascotCanvas mood={moodFromStats(stats)} size={23} />
+        </div>
+      </div>
       <div className="pillMetrics">
-        <MiniMetric label="Sessions" value={stats.totalLive} color="var(--ink)" />
-        <MiniMetric label="Working" value={stats.totalWorking} color="var(--working)" pulse={stats.totalWorking > 0} />
-        <MiniMetric label="Idle" value={stats.totalIdle} color="var(--idle)" />
+        <MiniMetric label="Working" icon="⚡" value={stats.totalWorking} color="var(--working)" pulse={stats.totalWorking > 0} />
+        <MiniMetric label="Idle" icon="☾" value={stats.totalIdle} color="var(--idle)" />
       </div>
     </section>
   );
 }
 
-function MiniMetric({ label, value, color, pulse = false }: { label: string; value: number; color: string; pulse?: boolean }) {
+function MiniMetric({ label, icon, value, color, pulse = false }: { label: string; icon: string; value: number; color: string; pulse?: boolean }) {
   return (
     <div className="miniMetric" title={label}>
-      <span className={pulse ? "dot pulse" : "dot"} style={{ background: color }} />
+      <span className={pulse ? "miniIcon pulse" : "miniIcon"} style={{ color }}>
+        {icon}
+      </span>
       <strong style={{ color }}>{value}</strong>
     </div>
   );
