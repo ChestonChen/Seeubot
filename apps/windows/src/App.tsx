@@ -94,7 +94,7 @@ function CollapsedPill({ stats }: { stats: DashStats }) {
         </div>
       </div>
       <div className="pillMetrics">
-        <MiniMetric label="Working" kind="dot" value={stats.totalWorking} color="var(--working)" pulse={stats.totalWorking > 0} />
+        <MiniMetric label="Working" kind="working" value={stats.totalWorking} color="var(--working)" pulse={stats.totalWorking > 0} />
         <MiniMetric label="Idle" icon="☾" value={stats.totalIdle} color="var(--idle)" />
       </div>
     </section>
@@ -110,7 +110,7 @@ function MiniMetric({
   pulse = false,
 }: {
   label: string;
-  kind?: "dot" | "icon";
+  kind?: "working" | "dot" | "icon";
   icon?: string;
   value: number;
   color: string;
@@ -118,7 +118,13 @@ function MiniMetric({
 }) {
   return (
     <div className="miniMetric" title={label}>
-      {kind === "dot" ? (
+      {kind === "working" && pulse ? (
+        <span className="miniGlowDot pulse" style={{ background: color, color }} />
+      ) : kind === "working" ? (
+        <svg className="miniBolt" viewBox="0 0 12 14" aria-hidden="true" style={{ color }}>
+          <path d="M6.9.7 1.6 7.4h3.5l-1 5.9 6.3-7.8H6.6L6.9.7Z" fill="currentColor" />
+        </svg>
+      ) : kind === "dot" ? (
         <span className={pulse ? "miniGlowDot pulse" : "miniGlowDot"} style={{ background: color, color }} />
       ) : (
         <span className="miniIcon" style={{ color }}>
@@ -142,7 +148,6 @@ function Dashboard({ stats }: { stats: DashStats }) {
             <p>AI SESSION MONITOR</p>
           </div>
           <div className="spacer" />
-          <span className="modeBadge">Windows Island</span>
         </header>
 
         <div className="statGrid">

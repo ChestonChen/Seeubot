@@ -1,5 +1,5 @@
 :root {
-  font-family: Inter, ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif;
+  font-family: ui-rounded, "SF Pro Rounded", "SF Pro Display", "Aptos Rounded", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
   color: #fff;
   background: transparent;
   --ink: rgba(255, 255, 255, 0.96);
@@ -184,6 +184,13 @@ button {
   text-shadow: 0 0 10px currentColor;
 }
 
+.miniBolt {
+  width: 12px;
+  height: 14px;
+  display: block;
+  filter: drop-shadow(0 0 8px currentColor);
+}
+
 .miniGlowDot {
   width: 7px;
   height: 7px;
@@ -203,15 +210,15 @@ button {
   margin: 0;
   font-size: 24px;
   line-height: 1;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.025em;
 }
 
 .header p {
   margin: 5px 0 0;
   color: var(--inkFaint);
   font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.25em;
+  font-weight: 750;
+  letter-spacing: 0.18em;
 }
 
 .spacer {
@@ -268,9 +275,12 @@ button {
 .statTile,
 .tokenHero,
 .chip {
-  background: #000;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.035)),
+    rgba(255, 255, 255, 0.055);
   border: 1px solid rgba(255, 255, 255, 0.16);
   backdrop-filter: blur(22px) saturate(170%);
+  -webkit-backdrop-filter: blur(22px) saturate(170%);
 }
 
 .statTile {
@@ -287,9 +297,9 @@ button {
   gap: 6px;
   color: var(--inkDim);
   font-size: 11px;
-  font-weight: 900;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.055em;
 }
 
 .statValue {
@@ -360,13 +370,13 @@ button {
   color: var(--inkDim);
   font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
 }
 
 .tokenTop strong {
   font-size: 52px;
   line-height: 0.94;
-  letter-spacing: -0.06em;
+  letter-spacing: -0.04em;
 }
 
 .outputBox {
@@ -378,7 +388,7 @@ button {
 .outputBox span {
   color: var(--inkFaint);
   font-size: 11px;
-  font-weight: 900;
+  font-weight: 800;
   text-transform: uppercase;
 }
 
@@ -475,8 +485,9 @@ button {
 
 .toolMeta b {
   margin-left: auto;
-  font-family: ui-monospace, "Cascadia Mono", monospace;
+  font-family: inherit;
   font-size: 13px;
+  font-variant-numeric: tabular-nums;
 }
 
 .workingText {
@@ -509,7 +520,7 @@ button {
   color: var(--inkDim);
   font-size: 13px;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.045em;
 }
 
 .liveBlock h2 span {
