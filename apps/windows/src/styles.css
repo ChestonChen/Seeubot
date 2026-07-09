@@ -141,6 +141,12 @@ button {
   transform: none;
 }
 
+.collapsing .dashboardContent {
+  transition:
+    opacity 170ms ease,
+    transform 190ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 .pillMetrics {
   display: flex;
   align-items: center;
