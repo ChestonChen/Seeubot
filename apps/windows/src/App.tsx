@@ -5,10 +5,13 @@ import MascotCanvas, { type Mood } from "./MascotCanvas";
 import { emptyStats, type DashStats, type LiveSession, type TokenBreakdown, type ToolStat } from "./types";
 import { setIslandFrame } from "./windowFrame";
 
+type IslandPhase = "collapsed" | "expanding" | "expanded" | "collapsing";
+
 export default function App() {
   const [stats, setStats] = useState<DashStats>(emptyStats);
-  const [expanded, setExpanded] = useState(false);
+  const [phase, setPhase] = useState<IslandPhase>("collapsed");
   const [dashboardReady, setDashboardReady] = useState(false);
+  const phaseRef = useRef<IslandPhase>("collapsed");
   const transitionToken = useRef(0);
 
   useEffect(() => {
@@ -29,33 +32,40 @@ export default function App() {
     };
   }, []);
 
-  useEffect(() => {
-    const token = ++transitionToken.current;
-    if (expanded) {
-      setDashboardReady(false);
-      setIslandFrame(true)
-        .then(() => {
-          if (transitionToken.current === token) setDashboardReady(true);
-        })
-        .catch(console.error);
-    } else {
-      setDashboardReady(false);
-      setIslandFrame(false).catch(console.error);
-    }
-  }, [expanded]);
+  const setIslandPhase = (next: IslandPhase) => {
+    phaseRef.current = next;
+    setPhase(next);
+  };
 
   const enter = () => {
-    setExpanded(true);
+    if (phaseRef.current === "expanded" || phaseRef.current === "expanding") return;
+    const token = ++transitionToken.current;
+    setDashboardReady(false);
+    setIslandPhase("expanding");
+    setIslandFrame(true)
+      .then(() => {
+        if (transitionToken.current !== token) return;
+        setIslandPhase("expanded");
+        setDashboardReady(true);
+      })
+      .catch(console.error);
   };
 
   const leave = () => {
-    transitionToken.current += 1;
+    if (phaseRef.current === "collapsed" || phaseRef.current === "collapsing") return;
+    const token = ++transitionToken.current;
     setDashboardReady(false);
-    setExpanded(false);
+    setIslandPhase("collapsing");
+    setIslandFrame(false)
+      .then(() => {
+        if (transitionToken.current !== token) return;
+        setIslandPhase("collapsed");
+      })
+      .catch(console.error);
   };
 
   return (
-    <main className={`island ${expanded ? "expanded" : "collapsed"} ${dashboardReady ? "dashboardReady" : ""}`} onMouseEnter={enter} onMouseLeave={leave}>
+    <main className={`island ${phase} ${dashboardReady ? "dashboardReady" : ""}`} onMouseEnter={enter} onMouseLeave={leave}>
       <CollapsedPill stats={stats} />
       <Dashboard stats={stats} />
     </main>
