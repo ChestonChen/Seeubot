@@ -5,15 +5,11 @@ import MascotCanvas, { type Mood } from "./MascotCanvas";
 import { emptyStats, type DashStats, type LiveSession, type TokenBreakdown, type ToolStat } from "./types";
 import { setIslandFrame } from "./windowFrame";
 
-const DASHBOARD_REVEAL_DELAY_MS = 260;
-const COLLAPSE_DELAY_MS = 120;
-
 export default function App() {
   const [stats, setStats] = useState<DashStats>(emptyStats);
   const [expanded, setExpanded] = useState(false);
   const [dashboardReady, setDashboardReady] = useState(false);
-  const collapseTimer = useRef<number | null>(null);
-  const revealTimer = useRef<number | null>(null);
+  const transitionToken = useRef(0);
 
   useEffect(() => {
     let mounted = true;
@@ -34,20 +30,28 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    setIslandFrame(expanded).catch(console.error);
+    const token = ++transitionToken.current;
+    if (expanded) {
+      setDashboardReady(false);
+      setIslandFrame(true)
+        .then(() => {
+          if (transitionToken.current === token) setDashboardReady(true);
+        })
+        .catch(console.error);
+    } else {
+      setDashboardReady(false);
+      setIslandFrame(false).catch(console.error);
+    }
   }, [expanded]);
 
   const enter = () => {
-    if (collapseTimer.current) window.clearTimeout(collapseTimer.current);
-    if (revealTimer.current) window.clearTimeout(revealTimer.current);
     setExpanded(true);
-    revealTimer.current = window.setTimeout(() => setDashboardReady(true), DASHBOARD_REVEAL_DELAY_MS);
   };
 
   const leave = () => {
-    if (revealTimer.current) window.clearTimeout(revealTimer.current);
+    transitionToken.current += 1;
     setDashboardReady(false);
-    collapseTimer.current = window.setTimeout(() => setExpanded(false), COLLAPSE_DELAY_MS);
+    setExpanded(false);
   };
 
   return (
