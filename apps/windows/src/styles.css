@@ -112,19 +112,26 @@ button {
   inset: 0;
   width: 100%;
   min-height: 100%;
-  border-radius: 28px;
+  border-radius: 999px;
   padding: 14px;
+  overflow: hidden;
   opacity: 0;
-  transform: translateY(-6px);
+  transform: scaleX(0.64) scaleY(0.085);
+  transform-origin: top center;
   pointer-events: none;
   z-index: 1;
 }
 
 .expanding .dashboard,
-.expanded .dashboard,
-.collapsing .dashboard {
+.expanded .dashboard {
   opacity: 1;
   transform: none;
+  border-radius: 28px;
+  pointer-events: auto;
+}
+
+.collapsing .dashboard {
+  opacity: 1;
   pointer-events: auto;
 }
 

@@ -6,9 +6,7 @@ import { emptyStats, type DashStats, type LiveSession, type TokenBreakdown, type
 import { setIslandFrame } from "./windowFrame";
 
 type IslandPhase = "collapsed" | "expanding" | "expanded" | "collapsing";
-const CONTENT_HIDE_ON_COLLAPSE_MS = 120;
-const CONTENT_REVEAL_MIN_WIDTH = 340;
-const CONTENT_REVEAL_MIN_HEIGHT = 360;
+const ISLAND_MORPH_MS = 240;
 
 export default function App() {
   const [stats, setStats] = useState<DashStats>(emptyStats);
@@ -16,7 +14,7 @@ export default function App() {
   const [dashboardReady, setDashboardReady] = useState(false);
   const phaseRef = useRef<IslandPhase>("collapsed");
   const transitionToken = useRef(0);
-  const hideTimer = useRef<number | null>(null);
+  const phaseTimer = useRef<number | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -44,47 +42,33 @@ export default function App() {
   const enter = () => {
     if (phaseRef.current === "expanded" || phaseRef.current === "expanding") return;
     const token = ++transitionToken.current;
-    if (hideTimer.current) window.clearTimeout(hideTimer.current);
-    setDashboardReady(false);
+    if (phaseTimer.current) window.clearTimeout(phaseTimer.current);
     setIslandPhase("expanding");
-    setIslandFrame(true, {
-      onProgress: ({ width, height }) => {
-        if (
-          transitionToken.current === token &&
-          phaseRef.current === "expanding" &&
-          width >= CONTENT_REVEAL_MIN_WIDTH &&
-          height >= CONTENT_REVEAL_MIN_HEIGHT
-        ) {
-          setDashboardReady(true);
-        }
-      },
-    })
-      .then(() => {
-        if (transitionToken.current !== token) return;
+    setDashboardReady(true);
+    setIslandFrame(true).catch(console.error);
+    phaseTimer.current = window.setTimeout(() => {
+      if (transitionToken.current === token && phaseRef.current === "expanding") {
         setIslandPhase("expanded");
-        setDashboardReady(true);
-      })
-      .catch(console.error);
+      }
+    }, ISLAND_MORPH_MS);
   };
 
   const leave = () => {
     if (phaseRef.current === "collapsed" || phaseRef.current === "collapsing") return;
     const token = ++transitionToken.current;
-    if (hideTimer.current) window.clearTimeout(hideTimer.current);
+    if (phaseTimer.current) window.clearTimeout(phaseTimer.current);
     setIslandPhase("collapsing");
-    hideTimer.current = window.setTimeout(() => {
+    phaseTimer.current = window.setTimeout(() => {
       if (transitionToken.current === token && phaseRef.current === "collapsing") {
         setDashboardReady(false);
+        setIslandFrame(false)
+          .then(() => {
+            if (transitionToken.current !== token) return;
+            setIslandPhase("collapsed");
+          })
+          .catch(console.error);
       }
-    }, CONTENT_HIDE_ON_COLLAPSE_MS);
-    setIslandFrame(false)
-      .then(() => {
-        if (transitionToken.current !== token) return;
-        if (hideTimer.current) window.clearTimeout(hideTimer.current);
-        setDashboardReady(false);
-        setIslandPhase("collapsed");
-      })
-      .catch(console.error);
+    }, ISLAND_MORPH_MS);
   };
 
   return (
