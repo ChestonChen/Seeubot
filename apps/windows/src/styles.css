@@ -117,6 +117,10 @@ button {
   opacity: 1;
 }
 
+.mascotRunway.working .runwayBot {
+  filter: drop-shadow(0 0 5px rgba(57, 219, 132, 0.22));
+}
+
 .collapsing .mascotRunway.active .runwayBot,
 .collapsing .mascotRunway.active .runwayEffects {
   animation: none;

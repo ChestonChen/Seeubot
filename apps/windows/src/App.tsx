@@ -126,19 +126,20 @@ function moodFromStats(stats: DashStats): Mood {
 }
 
 function CollapsedPill({ stats, phase }: { stats: DashStats; phase: IslandPhase }) {
-  const active = stats.totalWorking > 0 && phase === "collapsed";
+  const isWorking = stats.totalWorking > 0;
+  const animateActive = isWorking && phase === "collapsed";
   const [action, setAction] = useState<WorkAction>(() => pickWorkAction());
   const [motion, setMotion] = useState<RunwayMotion>({ x: 0, phase: 0, direction: 1, t: 0 });
 
   useEffect(() => {
-    if (!active) return;
+    if (!isWorking) return;
     setAction(pickWorkAction());
     const timer = window.setInterval(() => setAction(pickWorkAction()), 5200);
     return () => window.clearInterval(timer);
-  }, [active]);
+  }, [isWorking]);
 
   useEffect(() => {
-    if (!active) {
+    if (!animateActive) {
       setMotion({ x: 0, phase: 0, direction: 1, t: 0 });
       return;
     }
@@ -159,14 +160,15 @@ function CollapsedPill({ stats, phase }: { stats: DashStats; phase: IslandPhase 
 
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [active]);
+  }, [animateActive]);
 
-  const botX = active ? motion.x : 0;
+  const botX = animateActive ? motion.x : 0;
+  const runwayClass = isWorking ? `mascotRunway working ${animateActive ? `active ${action}` : ""}` : "mascotRunway";
 
   return (
     <section className="pill">
-      <div className={active ? `mascotRunway active ${action}` : "mascotRunway"}>
-        {active && <RunwayEffects action={action} motion={motion} />}
+      <div className={runwayClass}>
+        {animateActive && <RunwayEffects action={action} motion={motion} />}
         <div className="runwayBot" style={{ transform: `translate3d(${botX}px, -50%, 0)` }}>
           <MascotCanvas mood={moodFromStats(stats)} size={23} />
           <span className={action === "sparkTrail" ? "tinyVehicle hoverPad" : "tinyVehicle rocketSkid"} />
