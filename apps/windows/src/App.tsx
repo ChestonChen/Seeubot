@@ -6,6 +6,7 @@ import { emptyStats, type DashStats, type LiveSession, type TokenBreakdown, type
 import { setIslandFrame } from "./windowFrame";
 
 type IslandPhase = "collapsed" | "expanding" | "expanded" | "collapsing";
+const CONTENT_REVEAL_MS = 150;
 
 export default function App() {
   const [stats, setStats] = useState<DashStats>(emptyStats);
@@ -13,6 +14,7 @@ export default function App() {
   const [dashboardReady, setDashboardReady] = useState(false);
   const phaseRef = useRef<IslandPhase>("collapsed");
   const transitionToken = useRef(0);
+  const revealTimer = useRef<number | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -40,8 +42,14 @@ export default function App() {
   const enter = () => {
     if (phaseRef.current === "expanded" || phaseRef.current === "expanding") return;
     const token = ++transitionToken.current;
+    if (revealTimer.current) window.clearTimeout(revealTimer.current);
     setDashboardReady(false);
     setIslandPhase("expanding");
+    revealTimer.current = window.setTimeout(() => {
+      if (transitionToken.current === token && phaseRef.current === "expanding") {
+        setDashboardReady(true);
+      }
+    }, CONTENT_REVEAL_MS);
     setIslandFrame(true)
       .then(() => {
         if (transitionToken.current !== token) return;
@@ -54,6 +62,7 @@ export default function App() {
   const leave = () => {
     if (phaseRef.current === "collapsed" || phaseRef.current === "collapsing") return;
     const token = ++transitionToken.current;
+    if (revealTimer.current) window.clearTimeout(revealTimer.current);
     setDashboardReady(false);
     setIslandPhase("collapsing");
     setIslandFrame(false)
