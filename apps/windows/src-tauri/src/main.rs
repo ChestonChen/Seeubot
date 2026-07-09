@@ -11,6 +11,8 @@ use std::{
     sync::Mutex,
     time::{SystemTime, UNIX_EPOCH},
 };
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
 use tauri::{
     CustomMenuItem, Manager, PhysicalPosition, PhysicalSize, Position, Size, SystemTray,
     SystemTrayEvent, SystemTrayMenu, Window,
@@ -21,6 +23,8 @@ const WORKING_WINDOW_SECS: f64 = 45.0;
 const CURSOR_WORKING_WINDOW_SECS: f64 = 12.0;
 const CURSOR_OPEN_TURN_WINDOW_SECS: f64 = 30.0 * 60.0;
 const CURSOR_IDLE_RETENTION_SECS: f64 = 10.0 * 60.0;
+#[cfg(windows)]
+const CREATE_NO_WINDOW: u32 = 0x08000000;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -541,10 +545,21 @@ fn cursor_usage_cache_totals() -> Option<TokenBreakdown> {
     })
 }
 
+fn hidden_command(program: &str) -> Command {
+    let mut command = Command::new(program);
+    #[cfg(windows)]
+    {
+        command.creation_flags(CREATE_NO_WINDOW);
+    }
+    command
+}
+
 fn live_processes() -> Vec<ProcessInfo> {
-    let output = Command::new("powershell")
+    let output = hidden_command("powershell")
         .args([
             "-NoProfile",
+            "-WindowStyle",
+            "Hidden",
             "-ExecutionPolicy",
             "Bypass",
             "-Command",
