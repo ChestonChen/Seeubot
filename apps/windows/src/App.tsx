@@ -150,7 +150,7 @@ function CollapsedPill({ stats, phase }: { stats: DashStats; phase: IslandPhase 
       const phaseValue = 0.5 + 0.5 * Math.sin(t * MOTION_SPEED);
       const direction = Math.cos(t * MOTION_SPEED) >= 0 ? 1 : -1;
       setMotion({
-        x: Math.round(phaseValue * RUNWAY_TRAVEL),
+        x: phaseValue * RUNWAY_TRAVEL,
         phase: phaseValue,
         direction,
         t,
@@ -163,13 +163,14 @@ function CollapsedPill({ stats, phase }: { stats: DashStats; phase: IslandPhase 
   }, [animateActive]);
 
   const botX = animateActive ? motion.x : 0;
+  const botXCss = botX.toFixed(2);
   const runwayClass = isWorking ? `mascotRunway working ${animateActive ? `active ${action}` : ""}` : "mascotRunway";
 
   return (
     <section className="pill">
       <div className={runwayClass}>
         {animateActive && <RunwayEffects action={action} motion={motion} />}
-        <div className="runwayBot" style={{ transform: `translate3d(${botX}px, -50%, 0)` }}>
+        <div className="runwayBot" style={{ transform: `translate3d(${botXCss}px, -50%, 0)` }}>
           <MascotCanvas mood={moodFromStats(stats)} size={23} />
           <span className={action === "sparkTrail" ? "tinyVehicle hoverPad" : "tinyVehicle rocketSkid"} />
         </div>
