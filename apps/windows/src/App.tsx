@@ -8,6 +8,17 @@ import { setIslandFrame } from "./windowFrame";
 type IslandPhase = "collapsed" | "expanding" | "expanded" | "collapsing";
 type WorkAction = "sparkTrail" | "speedLines";
 const ISLAND_MORPH_MS = 240;
+const RUNWAY_WIDTH = 96;
+const BOT_WIDTH = 37;
+const RUNWAY_TRAVEL = 58;
+const MOTION_SPEED = 1.35;
+
+type RunwayMotion = {
+  x: number;
+  phase: number;
+  direction: 1 | -1;
+  t: number;
+};
 
 function hash01(value: number): number {
   const next = Math.sin(value * 12.9898) * 43758.5453;
@@ -17,6 +28,14 @@ function hash01(value: number): number {
 function pickWorkAction(now = Date.now()): WorkAction {
   const slot = Math.floor(now / 5200);
   return hash01(slot) < 0.5 ? "sparkTrail" : "speedLines";
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+
+function edgeFade(phase: number): number {
+  return Math.min(1, Math.max(0, Math.min(phase, 1 - phase) / 0.16));
 }
 
 export default function App() {
@@ -94,7 +113,7 @@ export default function App() {
 
   return (
     <main className={`island ${phase} ${dashboardReady ? "dashboardReady" : ""}`} onMouseEnter={enter} onMouseLeave={leave}>
-      <CollapsedPill stats={stats} />
+      <CollapsedPill stats={stats} phase={phase} />
       <Dashboard stats={stats} />
     </main>
   );
@@ -106,9 +125,10 @@ function moodFromStats(stats: DashStats): Mood {
   return "sleeping";
 }
 
-function CollapsedPill({ stats }: { stats: DashStats }) {
-  const active = stats.totalWorking > 0;
+function CollapsedPill({ stats, phase }: { stats: DashStats; phase: IslandPhase }) {
+  const active = stats.totalWorking > 0 && phase === "collapsed";
   const [action, setAction] = useState<WorkAction>(() => pickWorkAction());
+  const [motion, setMotion] = useState<RunwayMotion>({ x: 0, phase: 0, direction: 1, t: 0 });
 
   useEffect(() => {
     if (!active) return;
@@ -117,11 +137,37 @@ function CollapsedPill({ stats }: { stats: DashStats }) {
     return () => window.clearInterval(timer);
   }, [active]);
 
+  useEffect(() => {
+    if (!active) {
+      setMotion({ x: 0, phase: 0, direction: 1, t: 0 });
+      return;
+    }
+
+    let frame = 0;
+    const tick = (now: number) => {
+      const t = now / 1000;
+      const phaseValue = 0.5 + 0.5 * Math.sin(t * MOTION_SPEED);
+      const direction = Math.cos(t * MOTION_SPEED) >= 0 ? 1 : -1;
+      setMotion({
+        x: Math.round(phaseValue * RUNWAY_TRAVEL),
+        phase: phaseValue,
+        direction,
+        t,
+      });
+      frame = requestAnimationFrame(tick);
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [active]);
+
+  const botX = active ? motion.x : 0;
+
   return (
     <section className="pill">
       <div className={active ? `mascotRunway active ${action}` : "mascotRunway"}>
-        {active && <RunwayEffects action={action} />}
-        <div className="runwayBot">
+        {active && <RunwayEffects action={action} motion={motion} />}
+        <div className="runwayBot" style={{ transform: `translate3d(${botX}px, -50%, 0)` }}>
           <MascotCanvas mood={moodFromStats(stats)} size={23} />
           <span className={action === "sparkTrail" ? "tinyVehicle hoverPad" : "tinyVehicle rocketSkid"} />
         </div>
@@ -134,23 +180,53 @@ function CollapsedPill({ stats }: { stats: DashStats }) {
   );
 }
 
-function RunwayEffects({ action }: { action: WorkAction }) {
+function RunwayEffects({ action, motion }: { action: WorkAction; motion: RunwayMotion }) {
+  const fade = edgeFade(motion.phase);
+  const anchorX = motion.x + (motion.direction > 0 ? BOT_WIDTH * 0.2 : BOT_WIDTH * 0.8);
+
   return (
     <div className={`runwayEffects ${action}`} aria-hidden="true">
       {action === "sparkTrail" ? (
         <>
-          <span className="sparkle s1" />
-          <span className="sparkle s2" />
-          <span className="sparkle s3" />
-          <span className="sparkle s4" />
-          <span className="sparkle s5" />
+          {[0, 1, 2, 3, 4].map((index) => {
+            const pulse = 0.55 + 0.45 * Math.sin(motion.t * 4.2 + index);
+            const lag = index * 6.5 * fade;
+            const x = clamp(anchorX - motion.direction * lag, 4, RUNWAY_WIDTH - 4);
+            const y = 34 * (0.38 + 0.05 * Math.sin(motion.t * 2 + index));
+            return (
+              <span
+                key={index}
+                className="sparkle"
+                style={{
+                  left: x,
+                  top: y,
+                  opacity: fade * (0.25 + 0.55 * pulse),
+                  transform: `scale(${0.58 + pulse * 0.32})`,
+                }}
+              />
+            );
+          })}
         </>
       ) : (
         <>
-          <span className="speedLine l1" />
-          <span className="speedLine l2" />
-          <span className="speedLine l3" />
-          <span className="speedLine l4" />
+          {[0, 1, 2, 3].map((index) => {
+            const pulse = 0.5 + 0.5 * Math.sin(motion.t * 5.2 + index * 0.7);
+            const lag = index * 6 * fade;
+            const x = clamp(anchorX - motion.direction * lag, 4, RUNWAY_WIDTH - 4);
+            const y = 34 * (0.42 + (index % 3) * 0.07);
+            return (
+              <span
+                key={index}
+                className="speedLine"
+                style={{
+                  left: x,
+                  top: y,
+                  opacity: fade * (0.22 + 0.48 * pulse),
+                  transform: `scaleX(${0.65 + pulse * 0.35})`,
+                }}
+              />
+            );
+          })}
         </>
       )}
     </div>

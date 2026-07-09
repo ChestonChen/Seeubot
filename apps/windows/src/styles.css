@@ -105,18 +105,12 @@ button {
 .runwayEffects {
   position: absolute;
   left: 0;
-  top: 50%;
-  width: 37px;
+  top: 0;
+  width: 96px;
   height: 34px;
-  transform: translateY(-50%);
   opacity: 0;
   pointer-events: none;
-  will-change: transform, opacity;
-}
-
-.collapsed .mascotRunway.active .runwayBot,
-.collapsed .mascotRunway.active .runwayEffects {
-  animation: botRunwayDrift 2.35s ease-in-out infinite alternate;
+  will-change: opacity;
 }
 
 .collapsed .mascotRunway.active .runwayEffects {
@@ -129,15 +123,6 @@ button {
   transform: translate3d(0, -50%, 0);
 }
 
-@keyframes botRunwayDrift {
-  from {
-    transform: translate3d(0, -50%, 0);
-  }
-  to {
-    transform: translate3d(58px, -50%, 0);
-  }
-}
-
 .sparkle {
   position: absolute;
   display: block;
@@ -147,6 +132,7 @@ button {
   opacity: 0.72;
   filter: drop-shadow(0 0 6px currentColor);
   animation: sparkleBreath 1.15s ease-in-out infinite;
+  translate: -50% -50%;
 }
 
 .sparkle::before,
@@ -169,12 +155,6 @@ button {
   height: 2px;
 }
 
-.sparkle.s1 { left: -2px; top: 11px; animation-delay: 0ms; }
-.sparkle.s2 { left: -10px; top: 15px; transform: scale(0.8); animation-delay: 120ms; }
-.sparkle.s3 { left: -18px; top: 9px; transform: scale(0.72); animation-delay: 240ms; }
-.sparkle.s4 { left: -25px; top: 18px; transform: scale(0.58); animation-delay: 360ms; }
-.sparkle.s5 { left: -31px; top: 13px; transform: scale(0.48); animation-delay: 480ms; }
-
 @keyframes sparkleBreath {
   0%,
   100% {
@@ -187,7 +167,6 @@ button {
 
 .speedLine {
   position: absolute;
-  left: -24px;
   width: 13px;
   height: 3px;
   border-radius: 999px;
@@ -195,12 +174,8 @@ button {
   opacity: 0.48;
   box-shadow: 0 0 7px rgba(57, 219, 132, 0.42);
   animation: speedLinePulse 0.82s ease-in-out infinite;
+  translate: -50% -50%;
 }
-
-.speedLine.l1 { top: 11px; transform: scaleX(0.82); animation-delay: 0ms; }
-.speedLine.l2 { top: 16px; left: -31px; transform: scaleX(0.62); animation-delay: 120ms; }
-.speedLine.l3 { top: 21px; left: -19px; transform: scaleX(0.5); animation-delay: 240ms; }
-.speedLine.l4 { top: 7px; left: -27px; transform: scaleX(0.42); animation-delay: 360ms; }
 
 @keyframes speedLinePulse {
   0%,
