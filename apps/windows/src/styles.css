@@ -171,6 +171,14 @@ button {
   text-shadow: 0 0 10px currentColor;
 }
 
+.miniGlowDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  display: inline-block;
+  box-shadow: 0 0 9px currentColor;
+}
+
 .header {
   display: flex;
   align-items: center;

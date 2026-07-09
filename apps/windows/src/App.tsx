@@ -96,19 +96,37 @@ function CollapsedPill({ stats }: { stats: DashStats }) {
         </div>
       </div>
       <div className="pillMetrics">
-        <MiniMetric label="Working" icon="⚡" value={stats.totalWorking} color="var(--working)" pulse={stats.totalWorking > 0} />
+        <MiniMetric label="Working" kind="dot" value={stats.totalWorking} color="var(--working)" pulse={stats.totalWorking > 0} />
         <MiniMetric label="Idle" icon="☾" value={stats.totalIdle} color="var(--idle)" />
       </div>
     </section>
   );
 }
 
-function MiniMetric({ label, icon, value, color, pulse = false }: { label: string; icon: string; value: number; color: string; pulse?: boolean }) {
+function MiniMetric({
+  label,
+  kind = "icon",
+  icon,
+  value,
+  color,
+  pulse = false,
+}: {
+  label: string;
+  kind?: "dot" | "icon";
+  icon?: string;
+  value: number;
+  color: string;
+  pulse?: boolean;
+}) {
   return (
     <div className="miniMetric" title={label}>
-      <span className={pulse ? "miniIcon pulse" : "miniIcon"} style={{ color }}>
-        {icon}
-      </span>
+      {kind === "dot" ? (
+        <span className={pulse ? "miniGlowDot pulse" : "miniGlowDot"} style={{ background: color, color }} />
+      ) : (
+        <span className="miniIcon" style={{ color }}>
+          {icon}
+        </span>
+      )}
       <strong style={{ color }}>{value}</strong>
     </div>
   );
