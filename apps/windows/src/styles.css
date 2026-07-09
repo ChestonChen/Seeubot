@@ -102,8 +102,13 @@ button {
   will-change: transform;
 }
 
-.mascotRunway.active .runwayBot {
+.collapsed .mascotRunway.active .runwayBot {
   animation: botRunwayDrift 2.35s ease-in-out infinite alternate;
+}
+
+.collapsing .mascotRunway.active .runwayBot {
+  animation: none;
+  transform: translate3d(0, -50%, 0);
 }
 
 @keyframes botRunwayDrift {
