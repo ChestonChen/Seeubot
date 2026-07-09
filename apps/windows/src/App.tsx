@@ -6,8 +6,9 @@ import { emptyStats, type DashStats, type LiveSession, type TokenBreakdown, type
 import { setIslandFrame } from "./windowFrame";
 
 type IslandPhase = "collapsed" | "expanding" | "expanded" | "collapsing";
-const CONTENT_REVEAL_MS = 150;
 const CONTENT_HIDE_ON_COLLAPSE_MS = 120;
+const CONTENT_REVEAL_MIN_WIDTH = 340;
+const CONTENT_REVEAL_MIN_HEIGHT = 360;
 
 export default function App() {
   const [stats, setStats] = useState<DashStats>(emptyStats);
@@ -15,7 +16,6 @@ export default function App() {
   const [dashboardReady, setDashboardReady] = useState(false);
   const phaseRef = useRef<IslandPhase>("collapsed");
   const transitionToken = useRef(0);
-  const revealTimer = useRef<number | null>(null);
   const hideTimer = useRef<number | null>(null);
 
   useEffect(() => {
@@ -44,16 +44,21 @@ export default function App() {
   const enter = () => {
     if (phaseRef.current === "expanded" || phaseRef.current === "expanding") return;
     const token = ++transitionToken.current;
-    if (revealTimer.current) window.clearTimeout(revealTimer.current);
     if (hideTimer.current) window.clearTimeout(hideTimer.current);
     setDashboardReady(false);
     setIslandPhase("expanding");
-    revealTimer.current = window.setTimeout(() => {
-      if (transitionToken.current === token && phaseRef.current === "expanding") {
-        setDashboardReady(true);
-      }
-    }, CONTENT_REVEAL_MS);
-    setIslandFrame(true)
+    setIslandFrame(true, {
+      onProgress: ({ width, height }) => {
+        if (
+          transitionToken.current === token &&
+          phaseRef.current === "expanding" &&
+          width >= CONTENT_REVEAL_MIN_WIDTH &&
+          height >= CONTENT_REVEAL_MIN_HEIGHT
+        ) {
+          setDashboardReady(true);
+        }
+      },
+    })
       .then(() => {
         if (transitionToken.current !== token) return;
         setIslandPhase("expanded");
@@ -65,7 +70,6 @@ export default function App() {
   const leave = () => {
     if (phaseRef.current === "collapsed" || phaseRef.current === "collapsing") return;
     const token = ++transitionToken.current;
-    if (revealTimer.current) window.clearTimeout(revealTimer.current);
     if (hideTimer.current) window.clearTimeout(hideTimer.current);
     setIslandPhase("collapsing");
     hideTimer.current = window.setTimeout(() => {

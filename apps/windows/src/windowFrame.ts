@@ -8,11 +8,21 @@ const DURATION_MS = 240;
 let frameAnimation = 0;
 let lastFrame = { width: 0, height: 0, x: 0, y: 0 };
 
+type FrameProgress = {
+  progress: number;
+  width: number;
+  height: number;
+};
+
+type FrameOptions = {
+  onProgress?: (frame: FrameProgress) => void;
+};
+
 function easeOutCubic(value: number): number {
   return 1 - Math.pow(1 - value, 3);
 }
 
-export async function setIslandFrame(expanded: boolean): Promise<void> {
+export async function setIslandFrame(expanded: boolean, options: FrameOptions = {}): Promise<void> {
   const monitor = await currentMonitor();
   if (!monitor) return;
 
@@ -44,6 +54,7 @@ export async function setIslandFrame(expanded: boolean): Promise<void> {
           appWindow.setSize(new PhysicalSize(width, height)),
           appWindow.setPosition(new PhysicalPosition(x, y)),
         ]);
+        options.onProgress?.({ progress, width, height });
       }
 
       if (progress < 1) {
