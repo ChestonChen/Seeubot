@@ -57,10 +57,10 @@ export default function App() {
     if (phaseRef.current === "collapsed" || phaseRef.current === "collapsing") return;
     const token = ++transitionToken.current;
     if (phaseTimer.current) window.clearTimeout(phaseTimer.current);
+    setDashboardReady(false);
     setIslandPhase("collapsing");
     phaseTimer.current = window.setTimeout(() => {
       if (transitionToken.current === token && phaseRef.current === "collapsing") {
-        setDashboardReady(false);
         setIslandFrame(false)
           .then(() => {
             if (transitionToken.current !== token) return;

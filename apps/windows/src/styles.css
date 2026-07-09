@@ -1,5 +1,5 @@
 :root {
-  font-family: ui-rounded, "SF Pro Rounded", "SF Pro Display", "Aptos Rounded", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  font-family: "Arial Rounded MT Bold", "Aptos Rounded", "Segoe UI Rounded", ui-rounded, "SF Pro Rounded", "SF Pro Display", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
   color: #fff;
   background: transparent;
   --ink: rgba(255, 255, 255, 0.96);
@@ -16,6 +16,8 @@
 
 * {
   box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
 }
 
 html,
@@ -71,10 +73,15 @@ button {
 }
 
 .expanding .pill,
-.expanded .pill,
-.collapsing .pill {
+.expanded .pill {
   opacity: 0;
   pointer-events: none;
+}
+
+.collapsing .pill {
+  opacity: 1;
+  pointer-events: auto;
+  z-index: 3;
 }
 
 .mascotRunway {
@@ -149,9 +156,7 @@ button {
 }
 
 .collapsing .dashboardContent {
-  transition:
-    opacity 170ms ease,
-    transform 190ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: none;
 }
 
 .pillMetrics {
@@ -210,7 +215,8 @@ button {
   margin: 0;
   font-size: 24px;
   line-height: 1;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.015em;
+  font-weight: 800;
 }
 
 .header p {
