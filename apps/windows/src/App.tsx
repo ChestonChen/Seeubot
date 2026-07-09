@@ -13,6 +13,7 @@ export default function App() {
   const [phase, setPhase] = useState<IslandPhase>("collapsed");
   const [dashboardReady, setDashboardReady] = useState(false);
   const phaseRef = useRef<IslandPhase>("collapsed");
+  const hoverRef = useRef(false);
   const transitionToken = useRef(0);
   const phaseTimer = useRef<number | null>(null);
 
@@ -40,22 +41,31 @@ export default function App() {
   };
 
   const enter = () => {
+    hoverRef.current = true;
     if (phaseRef.current === "expanded" || phaseRef.current === "expanding") return;
     const token = ++transitionToken.current;
     if (phaseTimer.current) window.clearTimeout(phaseTimer.current);
-    setIslandPhase("expanding");
-    setDashboardReady(true);
-    setIslandFrame(true).catch(console.error);
-    phaseTimer.current = window.setTimeout(() => {
-      if (transitionToken.current === token && phaseRef.current === "expanding") {
-        setIslandPhase("expanded");
-      }
-    }, ISLAND_MORPH_MS);
+    setIslandFrame(true)
+      .then(() => {
+        if (transitionToken.current !== token || !hoverRef.current) {
+          setIslandFrame(false).catch(console.error);
+          return;
+        }
+        setIslandPhase("expanding");
+        setDashboardReady(true);
+        phaseTimer.current = window.setTimeout(() => {
+          if (transitionToken.current === token && phaseRef.current === "expanding") {
+            setIslandPhase("expanded");
+          }
+        }, ISLAND_MORPH_MS);
+      })
+      .catch(console.error);
   };
 
   const leave = () => {
-    if (phaseRef.current === "collapsed" || phaseRef.current === "collapsing") return;
+    hoverRef.current = false;
     const token = ++transitionToken.current;
+    if (phaseRef.current === "collapsed" || phaseRef.current === "collapsing") return;
     if (phaseTimer.current) window.clearTimeout(phaseTimer.current);
     setDashboardReady(false);
     setIslandPhase("collapsing");
