@@ -6,7 +6,18 @@ import { emptyStats, type DashStats, type LiveSession, type TokenBreakdown, type
 import { setIslandFrame } from "./windowFrame";
 
 type IslandPhase = "collapsed" | "expanding" | "expanded" | "collapsing";
+type WorkAction = "sparkTrail" | "speedLines";
 const ISLAND_MORPH_MS = 240;
+
+function hash01(value: number): number {
+  const next = Math.sin(value * 12.9898) * 43758.5453;
+  return next - Math.floor(next);
+}
+
+function pickWorkAction(now = Date.now()): WorkAction {
+  const slot = Math.floor(now / 5200);
+  return hash01(slot) < 0.5 ? "sparkTrail" : "speedLines";
+}
 
 export default function App() {
   const [stats, setStats] = useState<DashStats>(emptyStats);
@@ -96,11 +107,23 @@ function moodFromStats(stats: DashStats): Mood {
 }
 
 function CollapsedPill({ stats }: { stats: DashStats }) {
+  const active = stats.totalWorking > 0;
+  const [action, setAction] = useState<WorkAction>(() => pickWorkAction());
+
+  useEffect(() => {
+    if (!active) return;
+    setAction(pickWorkAction());
+    const timer = window.setInterval(() => setAction(pickWorkAction()), 5200);
+    return () => window.clearInterval(timer);
+  }, [active]);
+
   return (
     <section className="pill">
-      <div className={stats.totalWorking > 0 ? "mascotRunway active" : "mascotRunway"}>
+      <div className={active ? `mascotRunway active ${action}` : "mascotRunway"}>
+        {active && <RunwayEffects action={action} />}
         <div className="runwayBot">
           <MascotCanvas mood={moodFromStats(stats)} size={23} />
+          <span className={action === "sparkTrail" ? "tinyVehicle hoverPad" : "tinyVehicle rocketSkid"} />
         </div>
       </div>
       <div className="pillMetrics">
@@ -108,6 +131,29 @@ function CollapsedPill({ stats }: { stats: DashStats }) {
         <MiniMetric label="Idle" icon="☾" value={stats.totalIdle} color="var(--idle)" />
       </div>
     </section>
+  );
+}
+
+function RunwayEffects({ action }: { action: WorkAction }) {
+  return (
+    <div className={`runwayEffects ${action}`} aria-hidden="true">
+      {action === "sparkTrail" ? (
+        <>
+          <span className="sparkle s1" />
+          <span className="sparkle s2" />
+          <span className="sparkle s3" />
+          <span className="sparkle s4" />
+          <span className="sparkle s5" />
+        </>
+      ) : (
+        <>
+          <span className="speedLine l1" />
+          <span className="speedLine l2" />
+          <span className="speedLine l3" />
+          <span className="speedLine l4" />
+        </>
+      )}
+    </div>
   );
 }
 
