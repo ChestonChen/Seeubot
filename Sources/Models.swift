@@ -1,11 +1,18 @@
 import Foundation
 
+// 系统 API 速览：
+// - Codable：系统协议，让结构体可以被 JSONEncoder/JSONDecoder 编解码。
+// - Equatable / Hashable：系统协议，用于比较、放进 Set/Dictionary。
+// - Identifiable：SwiftUI 常用协议，ForEach 可以通过 id 稳定识别元素。
+// - String(format:)：Foundation 的格式化字符串函数，用于压缩数字显示。
 // MARK: - Core domain models shared by the collector and the UI.
+// 这里是“采集层”和“UI 层”的共同语言：采集器只负责产出这些结构，
+// SwiftUI 页面只读取这些结构来渲染，不需要知道底层文件怎么解析。
 
 struct AgentDescriptor: Codable, Equatable, Hashable, Identifiable {
     var id: String
     var display: String
-    /// Short glyph used in the collapsed pill and dashboard rows.
+    /// 每个 AI 工具的展示信息。新增 agent 时优先在这里补 id/name/glyph。
     var glyph: String
 
     static let claude = AgentDescriptor(id: "claude", display: "Claude", glyph: "✦")
@@ -14,8 +21,8 @@ struct AgentDescriptor: Codable, Equatable, Hashable, Identifiable {
 }
 
 enum SessionState: String, Codable {
-    case working   // transcript written within the "working" window -> actively producing
-    case idle      // process alive but quiet -> waiting on the human
+    case working   // 最近仍有输出/任务回合未结束，UI 上显示为工作中
+    case idle      // session 还在，但最近没有活动，UI 上显示为空闲
 }
 
 /// How the collapsed widget is presented around the notch.
@@ -28,7 +35,7 @@ enum WidgetMode: String, Codable, CaseIterable {
     var icon: String { self == .hanging ? "arrowtriangle.down.fill" : "arrow.left.and.right" }
 }
 
-/// One currently-open agent session (backed by a running process).
+/// 一个当前可展示的 agent 会话。Claude/Codex 通常对应进程，Cursor 则可能来自 transcript。
 struct LiveSession: Codable, Identifiable, Equatable {
     var id: String            // stable id: "\(tool)-\(pid)"
     var pid: Int
@@ -40,7 +47,7 @@ struct LiveSession: Codable, Identifiable, Equatable {
     var idleSeconds: Double   // seconds since the transcript last changed
 }
 
-/// A breakdown of token usage so the dashboard can explain the (large) totals.
+/// token 拆分。Dashboard 的总量、today、分段条都来自这里。
 struct TokenBreakdown: Codable, Equatable {
     var output: Int = 0        // tokens the model generated
     var inputFresh: Int = 0    // uncached prompt tokens
@@ -62,14 +69,18 @@ struct TokenBreakdown: Codable, Equatable {
     /// Component-wise (a − b), clamped at 0. Used to derive "today" from two
     /// cumulative Codex snapshots.
     static func clampedMinus(_ a: TokenBreakdown, _ b: TokenBreakdown) -> TokenBreakdown {
+        // 系统 API（行级）：Swift 标准数学函数，用来计算动画曲线或边界值。
         TokenBreakdown(output: max(0, a.output - b.output),
+                       // 系统 API（行级）：Swift 标准数学函数，用来计算动画曲线或边界值。
                        inputFresh: max(0, a.inputFresh - b.inputFresh),
+                       // 系统 API（行级）：Swift 标准数学函数，用来计算动画曲线或边界值。
                        cacheCreate: max(0, a.cacheCreate - b.cacheCreate),
+                       // 系统 API（行级）：Swift 标准数学函数，用来计算动画曲线或边界值。
                        cacheRead: max(0, a.cacheRead - b.cacheRead))
     }
 }
 
-/// Aggregate numbers for a single tool.
+/// 某一个工具（Claude/Codex/Cursor）的聚合统计。
 struct ToolStat: Codable, Equatable {
     var tool: AgentDescriptor
     var live: Int
@@ -80,7 +91,7 @@ struct ToolStat: Codable, Equatable {
     var sessionsAllTime: Int   // number of transcript files on disk
 }
 
-/// The full snapshot the widget renders.
+/// UI 每次刷新拿到的完整快照。可以把它理解为整个组件的“页面数据模型”。
 struct DashStats: Codable, Equatable {
     var sessions: [LiveSession]
     var perTool: [ToolStat]
@@ -114,6 +125,7 @@ enum Fmt {
     /// 1234 -> "1.2K", 1_250_000 -> "1.25M", 3_400_000_000 -> "3.4B"
     static func compact(_ n: Int) -> String {
         let v = Double(n)
+        // 系统 API（行级）：Swift 标准数学函数，用来计算动画曲线或边界值。
         switch abs(n) {
         case 1_000_000_000...:
             return trim(v / 1_000_000_000) + "B"
