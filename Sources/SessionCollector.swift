@@ -7,27 +7,18 @@ import Foundation
 // - ISO8601DateFormatter：解析 transcript 里的 ISO 时间字符串。
 // - Process / Pipe：启动 ps、lsof 等系统命令并读取输出。
 // - FileHandle：读文件尾部、写 debug 输出、关闭文件句柄。
-// - NSHomeDirectory：获取当前用户 home 目录，拼出 ~/.claude、~/.codex、~/.cursor 路径。
+// - NSHomeDirectory：获取当前用户 home 目录，拼出 ~/.claude、~/.codex 路径。
 /// 采集器核心：扫描本地 agent transcript、token cache 和实时进程列表，
 /// 最终产出一个 `DashStats` 快照给 UI。
 ///
 /// 你读这个文件时记住一条主线：
 /// 1. 每个工具先通过 `AgentAdapter` 定义“去哪找文件 / 怎么解析 / 怎么识别进程”
 /// 2. `collect()` 调所有 adapter，得到 sessions + token totals
-/// 3. UI 只看 `DashStats`，不关心底层是 Claude、Codex 还是 Cursor。
+/// 3. UI 只看 `DashStats`，不关心底层是 Claude 还是 Codex。
 final class SessionCollector {
 
     /// A transcript written within this many seconds is treated as "working".
     static let workingWindow: TimeInterval = 45
-    /// Cursor transcript writes happen near interaction boundaries, so a shorter
-    /// window keeps the UI from lingering in "working" after a task finishes.
-    static let cursorWorkingWindow: TimeInterval = 12
-    /// If Cursor has started a turn but has not appended `turn_ended`, keep the
-    /// session working even if no transcript bytes are written during a long tool run.
-    static let cursorOpenTurnWindow: TimeInterval = 30 * 60
-    /// A finished Cursor turn stays visible briefly as idle, then drops out of
-    /// the live session list while its aggregate usage remains counted.
-    static let cursorIdleRetentionWindow: TimeInterval = 10 * 60
 
     private let home = NSHomeDirectory()
 
@@ -59,20 +50,19 @@ final class SessionCollector {
         var parseFile: (SessionCollector, String, TimeInterval) -> (TokenBreakdown, TokenBreakdown, String?)
         var classifyProcess: (SessionCollector, String) -> Bool
         var resolveTranscript: (SessionCollector, String, String?, [String: FileInfo], inout Set<String>) -> Match?
-        var extraSessions: (SessionCollector, TimeInterval, [String: FileInfo], Set<String>) -> [LiveSession]
     }
 
     // path -> parsed info (validated against size+mtime so stale entries are ignored)
     private var cache: [String: FileInfo] = [:]
 
     private var adapters: [AgentAdapter] {
-        [claudeAdapter(), codexAdapter(), cursorAdapter()]
+        [claudeAdapter(), codexAdapter()]
     }
 
     // MARK: - Public entry point
 
-    /// 每秒被 `StatsStore` 调用一次，是采集链路总入口。
-    /// 这里会把“文件统计 + 进程状态 + Cursor 额外 session”合并成 Dashboard 数据。
+    /// 每次刷新采集一次，是采集链路总入口。
+    /// 这里会把“文件统计 + 进程状态”合并成 Dashboard 数据。
     func collect() -> DashStats {
         // 系统 API（行级）：Date() 获取当前时间。
         let now = Date().timeIntervalSince1970
@@ -101,16 +91,11 @@ final class SessionCollector {
 
         var sessions: [LiveSession] = []
         var claimed = Set<String>()
-        // 第三步：把进程和打开的 transcript 对上，生成 Claude/Codex live session。
+        // 第三步：把进程和打开的 transcript 对上，生成 live session。
         for proc in procs {
             guard let adapter = activeAdapters.first(where: { $0.descriptor.id == proc.agent.id }) else { continue }
             let probedCwd = probe[proc.pid]?.cwd ?? ""
-            // Cursor 主进程常驻，不能代表一个 agent session，所以这里跳过 Cursor；
-            // Cursor 的 session 会在后面的 extraSessions 里由 transcript 生成。
-            let transcript = adapter.descriptor.id == AgentDescriptor.cursor.id
-                ? nil
-                : adapter.resolveTranscript(self, probedCwd, probe[proc.pid]?.transcript, infoByPath, &claimed)
-            if adapter.descriptor.id == AgentDescriptor.cursor.id { continue }
+            let transcript = adapter.resolveTranscript(self, probedCwd, probe[proc.pid]?.transcript, infoByPath, &claimed)
             let sessionCwd = transcript?.cwd ?? probedCwd
             // 系统 API（行级）：Swift 标准数学函数，用来计算动画曲线或边界值。
             let idleSeconds = transcript.map { max(0, now - $0.mtime) } ?? .infinity
@@ -126,24 +111,17 @@ final class SessionCollector {
                 idleSeconds: idleSeconds.isFinite ? idleSeconds : -1
             ))
         }
-        // 第四步：给 Cursor 这类“不能直接靠进程判断”的工具补充逻辑 session。
-        for adapter in activeAdapters {
-            sessions.append(contentsOf: adapter.extraSessions(self, now, infoByPath, claimed))
-        }
 
         sessions.sort {
             if ($0.state == .working) != ($1.state == .working) { return $0.state == .working }
             return $0.idleSeconds < $1.idleSeconds
         }
 
-        // 第五步：按工具聚合 token、working/idle 数量，供 dashboard 的工具列表使用。
+        // 第四步：按工具聚合 token、working/idle 数量，供 dashboard 的工具列表使用。
         var perTool: [ToolStat] = []
         for adapter in activeAdapters {
             let paths = pathsByAgent[adapter.descriptor.id] ?? []
-            var totals = totals(paths, infoByPath: infoByPath, startOfToday: startOfToday)
-            if adapter.descriptor.id == AgentDescriptor.cursor.id, let usage = cursorUsageCacheTotals() {
-                totals = (all: usage.all, today: usage.today, count: totals.count)
-            }
+            let totals = totals(paths, infoByPath: infoByPath, startOfToday: startOfToday)
             let toolSessions = sessions.filter { $0.tool.id == adapter.descriptor.id }
             // Show agents that are currently live or have historical transcripts.
             // Installed-but-never-used tools stay hidden because they have neither.
@@ -178,7 +156,7 @@ final class SessionCollector {
     // MARK: - Adapters
 
     private func claudeAdapter() -> AgentAdapter {
-        // Claude：保留原来的 ~/.claude/projects transcript 解析和进程识别逻辑。
+        // Claude：~/.claude/projects 下的 transcript + 进程识别。
         AgentAdapter(
             descriptor: .claude,
             enumerateFiles: { collector in collector.enumerateJSONL(dir: collector.home + "/.claude/projects") },
@@ -189,8 +167,7 @@ final class SessionCollector {
             classifyProcess: { collector, command in collector.executableBase(command) == "claude" },
             resolveTranscript: { collector, cwd, openPath, infoByPath, claimed in
                 collector.resolveClaude(cwd: cwd, openPath: openPath, infoByPath: infoByPath, claimed: &claimed)
-            },
-            extraSessions: { _, _, _, _ in [] }
+            }
         )
     }
 
@@ -203,30 +180,6 @@ final class SessionCollector {
             classifyProcess: { collector, command in collector.isInteractiveCodex(command: command) },
             resolveTranscript: { collector, cwd, openPath, infoByPath, claimed in
                 collector.resolveCodex(cwd: cwd, openPath: openPath, infoByPath: infoByPath, claimed: &claimed)
-            },
-            extraSessions: { _, _, _, _ in [] }
-        )
-    }
-
-    private func cursorAdapter() -> AgentAdapter {
-        // Cursor：不把主 App 进程当 session，而是读取 ~/.cursor/projects 下的 agent-transcripts。
-        AgentAdapter(
-            descriptor: .cursor,
-            enumerateFiles: { collector in
-                collector.enumerateJSONL(dir: collector.home + "/.cursor/projects")
-                    .filter { $0.contains("/agent-transcripts/") && !$0.contains("/subagents/") }
-            },
-            parseFile: { collector, path, _ in
-                // Cursor agent transcripts do not expose stable per-session usage
-                // buckets locally. Aggregate usage is merged at the ToolStat level.
-                (TokenBreakdown(), TokenBreakdown(), collector.cursorCwd(from: path))
-            },
-            classifyProcess: { collector, command in collector.isCursor(command: command) },
-            resolveTranscript: { collector, cwd, openPath, infoByPath, claimed in
-                collector.resolveCursor(cwd: cwd, openPath: openPath, infoByPath: infoByPath, claimed: &claimed)
-            },
-            extraSessions: { collector, now, infoByPath, claimed in
-                collector.cursorTranscriptSessions(now: now, infoByPath: infoByPath, claimed: claimed)
             }
         )
     }
@@ -258,7 +211,7 @@ final class SessionCollector {
     }
 
     private func info(for path: String, adapter: AgentAdapter, startOfToday: TimeInterval) -> FileInfo {
-        // 解析结果按 path + mtime + size 缓存；文件没变就不重复解析，降低 1 秒刷新成本。
+        // 解析结果按 path + agent + mtime + size 缓存；文件没变就不重复解析。
         guard let st = statOf(path) else {
             return FileInfo(agentID: adapter.descriptor.id, mtime: 0, size: 0,
                             tokens: TokenBreakdown(), todayTokens: TokenBreakdown(), cwd: nil)
@@ -341,7 +294,6 @@ final class SessionCollector {
             }
             guard line.contains("total_token_usage") else { return }
             guard let lineData = line.data(using: .utf8),
-                  // 系统 API（行级）：JSONSerialization.jsonObject 把 JSON Data 解析成字典/数组。
                   let obj = try? JSONSerialization.jsonObject(with: lineData) as? [String: Any],
                   let payload = obj["payload"] as? [String: Any],
                   (payload["type"] as? String) == "token_count",
@@ -362,44 +314,6 @@ final class SessionCollector {
         let all = last ?? TokenBreakdown()
         let today = TokenBreakdown.clampedMinus(all, beforeToday ?? TokenBreakdown())
         return (all, today, cwd)
-    }
-
-    private func cursorUsageCacheTotals() -> (all: TokenBreakdown, today: TokenBreakdown)? {
-        // Cursor transcript 没有稳定 per-session token 字段，所以 token 只从本地 usage cache 读 todayStats。
-        let path = home + "/Library/Application Support/Cursor/User/globalStorage/panshenbing.cursor-usage-dashboard/usage-refresh-cache.json"
-        // 系统 API（行级）：FileManager.default 是系统文件管理器，用来枚举和读取本地文件。
-        guard let data = FileManager.default.contents(atPath: path),
-              // 系统 API（行级）：JSONSerialization.jsonObject 把 JSON Data 解析成字典/数组。
-              let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let payload = root["data"] as? [String: Any] else { return nil }
-
-        guard let today = cursorTokenBreakdown(from: payload["todayStats"] as? [String: Any]) else {
-            return nil
-        }
-        return (today, today)
-    }
-
-    private func cursorTokenBreakdown(from stats: [String: Any]?) -> TokenBreakdown? {
-        guard let stats else { return nil }
-        return TokenBreakdown(
-            output: intValue(stats["outputTokens"]),
-            inputFresh: intValue(stats["inputTokens"]),
-            cacheCreate: intValue(stats["cacheWriteTokens"]),
-            cacheRead: intValue(stats["cacheReadTokens"])
-        )
-    }
-
-    private func intValue(_ value: Any?) -> Int {
-        switch value {
-        case let n as Int:
-            return n
-        case let n as NSNumber:
-            return n.intValue
-        case let d as Double:
-            return Int(d)
-        default:
-            return 0
-        }
     }
 
     private static let isoFrac: ISO8601DateFormatter = {
@@ -456,11 +370,6 @@ final class SessionCollector {
         return !Self.codexNonInteractive.contains(firstArg)
     }
 
-    private func isCursor(command: String) -> Bool {
-        // 只识别 Cursor 主程序，过滤 Cursor Helper，避免把渲染/插件进程误算成 session。
-        command.contains(".app/Contents/MacOS/Cursor") && !command.contains("Cursor Helper")
-    }
-
     private func probeProcesses(pids: [Int]) -> [Int: (cwd: String?, transcript: String?)] {
         // 用 lsof 反查进程 cwd 和当前打开的 jsonl 文件，用来把“进程”对到“transcript”。
         guard !pids.isEmpty else { return [:] }
@@ -484,8 +393,7 @@ final class SessionCollector {
                     map[pid, default: (nil, nil)].cwd = val
                 } else if val.hasSuffix(".jsonl"),
                           val.contains("/.codex/sessions/")
-                            || val.contains("/.claude/projects/")
-                            || val.contains("/.cursor/projects/") {
+                            || val.contains("/.claude/projects/") {
                     map[pid, default: (nil, nil)].transcript = val
                 }
             default:
@@ -523,92 +431,6 @@ final class SessionCollector {
         return match
     }
 
-    private func resolveCursor(cwd: String, openPath: String?, infoByPath: [String: FileInfo],
-                               claimed: inout Set<String>) -> Match? {
-        if let exact = exactMatch(openPath, infoByPath: infoByPath, claimed: &claimed) { return exact }
-        let match = newest(infoByPath, claimed: claimed) { _, info in
-            guard info.agentID == AgentDescriptor.cursor.id else { return false }
-            // 系统 API（行级）：Date() 获取当前时间。
-            return cwd.isEmpty || info.cwd == cwd || info.mtime >= Date().timeIntervalSince1970 - 6 * 3600
-        }
-        if let match { claimed.insert(match.path) }
-        return match
-    }
-
-    private func cursorTranscriptSessions(now: TimeInterval, infoByPath: [String: FileInfo],
-                                          claimed: Set<String>) -> [LiveSession] {
-        // Cursor 的 live session 由最近活跃的 agent transcript 生成：
-        // 未 turn_ended -> working；已结束 -> 保留一小段 idle；同 workspace 去重。
-        let cursorInfos = infoByPath
-            .filter { path, info in
-                guard info.agentID == AgentDescriptor.cursor.id, !claimed.contains(path) else { return false }
-                // 系统 API（行级）：Swift 标准数学函数，用来计算动画曲线或边界值。
-                let idleSeconds = max(0, now - info.mtime)
-                switch cursorTranscriptOpenTurn(path) {
-                case .some(true):
-                    return idleSeconds < Self.cursorOpenTurnWindow
-                case .some(false):
-                    return idleSeconds < Self.cursorIdleRetentionWindow
-                case .none:
-                    return idleSeconds < Self.cursorWorkingWindow
-                }
-            }
-            .sorted { $0.value.mtime > $1.value.mtime }
-
-        var seenCwds = Set<String>()
-        var sessions: [LiveSession] = []
-        for (path, info) in cursorInfos {
-            let cwd = info.cwd ?? cursorCwd(from: path) ?? ""
-            let dedupeKey = cwd.isEmpty ? path : cwd
-            guard seenCwds.insert(dedupeKey).inserted else { continue }
-            // 系统 API（行级）：Swift 标准数学函数，用来计算动画曲线或边界值。
-            let idleSeconds = max(0, now - info.mtime)
-            let state: SessionState
-            switch cursorTranscriptOpenTurn(path) {
-            case .some(true):
-                state = idleSeconds < Self.cursorOpenTurnWindow ? .working : .idle
-            case .some(false):
-                state = .idle
-            case .none:
-                state = idleSeconds < Self.cursorWorkingWindow ? .working : .idle
-            }
-            sessions.append(LiveSession(
-                id: "cursor-file-\(stableHash(path))",
-                pid: 0,
-                tool: .cursor,
-                project: projectName(from: cwd),
-                cwd: cwd,
-                state: state,
-                tokens: info.tokens.total,
-                idleSeconds: idleSeconds
-            ))
-            if sessions.count >= 8 { break }
-        }
-        return sessions
-    }
-
-    private func cursorTranscriptOpenTurn(_ path: String) -> Bool? {
-        // 只读最后一行即可判断 Cursor 当前 turn 是否结束；读全文件会浪费。
-        guard let line = lastLine(path), !line.isEmpty else { return nil }
-        return !line.contains("\"type\":\"turn_ended\"")
-    }
-
-    private func lastLine(_ path: String, maxBytes: UInt64 = 64 * 1024) -> String? {
-        // 系统 API（行级）：FileHandle(forReadingAtPath:) 打开文件用于读取。
-        guard let handle = FileHandle(forReadingAtPath: path) else { return nil }
-        defer { try? handle.close() }
-        guard let size = try? handle.seekToEnd() else { return nil }
-        let offset = size > maxBytes ? size - maxBytes : 0
-        do {
-            try handle.seek(toOffset: offset)
-        } catch {
-            return nil
-        }
-        let data = handle.readDataToEndOfFile()
-        guard let text = String(data: data, encoding: .utf8) else { return nil }
-        return text.split(whereSeparator: \.isNewline).last.map(String.init)
-    }
-
     private func exactMatch(_ openPath: String?, infoByPath: [String: FileInfo], claimed: inout Set<String>) -> Match? {
         guard let openPath, !claimed.contains(openPath), let info = infoByPath[openPath] else { return nil }
         claimed.insert(openPath)
@@ -633,43 +455,10 @@ final class SessionCollector {
         })
     }
 
-    private func cursorCwd(from path: String) -> String? {
-        // Cursor 会把项目路径编码进 ~/.cursor/projects/<encoded>，这里尽量还原成人能看懂的 cwd。
-        guard let range = path.range(of: "/.cursor/projects/") else { return nil }
-        let rest = path[range.upperBound...]
-        guard let projectFolder = rest.split(separator: "/").first else { return nil }
-        if projectFolder == "empty-window" { return "empty-window" }
-        let encoded = String(projectFolder)
-        let knownPrefixes = ["Users-bytedance-Projects-", "Users-bytedance-TikTok-", "Users-bytedance-"]
-        for prefix in knownPrefixes where encoded.hasPrefix(prefix) {
-            let suffix = String(encoded.dropFirst(prefix.count))
-            switch prefix {
-            case "Users-bytedance-":
-                return "/Users/bytedance/" + suffix
-            case "Users-bytedance-Projects-":
-                return "/Users/bytedance/Projects/" + suffix
-            case "Users-bytedance-TikTok-":
-                return "/Users/bytedance/TikTok/" + suffix
-            default:
-                break
-            }
-        }
-        return "/" + encoded.split(separator: "-").joined(separator: "/")
-    }
-
     private func projectName(from cwd: String) -> String {
         if cwd.isEmpty { return "-" }
         let base = (cwd as NSString).lastPathComponent
         return base.isEmpty ? cwd : base
-    }
-
-    private func stableHash(_ s: String) -> String {
-        var hash: UInt64 = 1469598103934665603
-        for byte in s.utf8 {
-            hash ^= UInt64(byte)
-            hash &*= 1099511628211
-        }
-        return String(hash, radix: 16)
     }
 
     // MARK: - Subprocess helper

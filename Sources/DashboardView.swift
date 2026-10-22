@@ -40,7 +40,7 @@ struct DashboardBody: View {
 
             tokenHero
 
-            // 每个 agent 的聚合行：Claude / Codex / Cursor 动态遍历，不再写死。
+            // 每个 agent 的聚合行：动态遍历 perTool，不再写死。
             // 系统 API（行级）：VStack 纵向排列子视图。
             VStack(spacing: 10) {
                 // 系统 API（行级）：ForEach 根据集合动态生成多个 SwiftUI 子视图。
@@ -340,7 +340,7 @@ struct RotatingAura: View {
                 // 系统 API（行级）：AngularGradient 创建角向渐变，适合旋转光晕。
                 .fill(AngularGradient(
                     // 系统 API（行级）：Gradient 定义渐变颜色序列。
-                    gradient: Gradient(colors: [Palette.claude, Palette.codex, Palette.cursor, Palette.tCacheCreate, Palette.working, Palette.claude]),
+                    gradient: Gradient(colors: [Palette.claude, Palette.codex, Palette.tCacheCreate, Palette.working, Palette.claude]),
                     center: .center,
                     angle: .degrees(a * 360)))
                 // 系统 API（行级）：.frame 设置视图期望宽高或对齐方式。

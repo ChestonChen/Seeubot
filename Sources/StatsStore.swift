@@ -10,7 +10,6 @@ import Combine
 // - RunLoop.main.add：把 timer 加到主运行循环，让 UI 交互时也持续触发。
 // - Task { @MainActor in ... }：采集完成后切回主线程更新 @Published 状态。
 /// UI 的状态仓库：定时调用 `SessionCollector`，再把最新 `DashStats` 发布给 SwiftUI。
-/// 你看数据流时可以从这里理解“UI 为什么会每秒刷新一次”。
 @MainActor
 final class StatsStore: ObservableObject {
     // 系统 API（行级）：@Published 标记状态变化会通知 SwiftUI 刷新。
@@ -21,8 +20,6 @@ final class StatsStore: ObservableObject {
     @Published var metrics: NotchMetrics
     // 系统 API（行级）：@Published 标记状态变化会通知 SwiftUI 刷新。
     @Published var hover: Bool = false            // cursor is over the widget
-    // 系统 API（行级）：@Published 标记状态变化会通知 SwiftUI 刷新。
-    @Published var dashboardHeight: CGFloat = 380 // measured expanded body height
     // 系统 API（行级）：@Published 标记状态变化会通知 SwiftUI 刷新。
     @Published var updateAvailable: String? = nil // latest release tag if newer than us
     var onMenu: (() -> Void)?                     // in-widget "⋯" button → show control menu
@@ -49,7 +46,7 @@ final class StatsStore: ObservableObject {
     private var timer: Timer?
     private let interval: TimeInterval
 
-    init(interval: TimeInterval = 1, metrics: NotchMetrics) {
+    init(interval: TimeInterval = 3, metrics: NotchMetrics) {
         self.interval = interval
         self.metrics = metrics
         // 启动时先采集一次，避免 UI 长时间停留在空态。

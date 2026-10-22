@@ -2,10 +2,8 @@ import SwiftUI
 
 // 系统 API 速览：
 // - Shape / Path：SwiftUI 自定义图形协议和路径，用来画特殊圆角 island 外形。
-// - PreferenceKey：子视图向父视图回传布局信息，这里用来测 dashboard 高度。
 // - @ObservedObject：订阅 `StatsStore`，store 变化会触发 body 重新计算。
 // - VStack：纵向排布 UI。
-// - GeometryReader：读取子视图实际尺寸。
 // - .transition / .animation：控制胶囊、bar、dashboard 切换时的过渡动画。
 // - .background / .overlay / .clipShape / .shadow：SwiftUI 常用外观修饰符。
 /// 胶囊/卡片共用的外形：顶部是直角贴住屏幕顶边，底部圆角向下展开。
@@ -34,17 +32,11 @@ struct IslandShape: Shape {
     }
 }
 
-private struct HeightKey: PreferenceKey {
-    static var defaultValue: CGFloat = 400
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
-}
-
 /// 顶部组件的 SwiftUI 根视图。
 ///
-/// 这里负责把三种可见状态串起来：
-/// - hanging：刘海下方单胶囊
-/// - sides：刘海两侧 / 无刘海顶部 bar
-/// - expanded：鼠标 hover 后展开的 dashboard
+/// 这里负责把两种可见状态串起来：
+/// - 收起：刘海下方单胶囊，或横跨刘海的长条
+/// - 展开：鼠标 hover 后的 dashboard
 // 系统 API（行级）：View 是 SwiftUI 组件协议，body 描述界面内容。
 struct NotchRootView: View {
     // 系统 API（行级）：@ObservedObject 让 SwiftUI View 订阅外部 ObservableObject。
@@ -87,11 +79,6 @@ struct NotchRootView: View {
                               updateTag: store.updateAvailable,
                               onToggleMode: { store.toggleMode() },
                               onMenu: { store.onMenu?() })
-                    // 系统 API（行级）：GeometryReader 读取父容器给出的尺寸。
-                    .background(GeometryReader { proxy in
-                        // 系统 API（行级）：Color 是 SwiftUI 颜色类型。
-                        Color.clear.preference(key: HeightKey.self, value: proxy.size.height)
-                    })
                     // 系统 API（行级）：.transition 设置视图插入/移除时的过渡效果。
                     .transition(.opacity.combined(with: .move(edge: .top)))
             } else if isSides {
@@ -123,8 +110,6 @@ struct NotchRootView: View {
         .overlay(alignment: .bottom) { moodUnderglow(width: width) }
         // 系统 API（行级）：.shadow 给视图添加阴影。
         .shadow(color: .black.opacity(0.32), radius: expanded ? 12 : 7, x: 0, y: expanded ? 6 : 3)
-        // 系统 API（行级）：.onPreferenceChange 监听子视图传回的 PreferenceKey。
-        .onPreferenceChange(HeightKey.self) { store.dashboardHeight = $0 }
     }
 
     /// 底部状态光：working/idle/sleeping 会用不同颜色给组件一个很弱的状态提示。

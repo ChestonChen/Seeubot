@@ -12,7 +12,6 @@ import AppKit
 
 enum Palette {
     static let notchBlack   = Color(red: 0.04, green: 0.04, blue: 0.05)
-    static let panelTop     = Color(red: 0.09, green: 0.09, blue: 0.12)
     static let panelBottom  = Color(red: 0.05, green: 0.05, blue: 0.07)
 
     // 系统 API（行级）：Color 是 SwiftUI 颜色类型。
@@ -21,8 +20,6 @@ enum Palette {
     static let inkDim       = Color.white.opacity(0.62)
     // 系统 API（行级）：Color 是 SwiftUI 颜色类型。
     static let inkFaint     = Color.white.opacity(0.34)
-    // 系统 API（行级）：Color 是 SwiftUI 颜色类型。
-    static let hairline     = Color.white.opacity(0.08)
 
     // Session states
     static let working      = Color(red: 0.24, green: 0.86, blue: 0.52)   // vivid green
@@ -34,8 +31,6 @@ enum Palette {
     static let claudeDeep   = Color(red: 0.92, green: 0.33, blue: 0.20)
     static let codex        = Color(red: 0.37, green: 0.90, blue: 0.80)   // mint/teal
     static let codexDeep    = Color(red: 0.09, green: 0.72, blue: 0.64)
-    static let cursor       = Color(red: 0.62, green: 0.68, blue: 1.00)   // cool violet-blue
-    static let cursorDeep   = Color(red: 0.37, green: 0.42, blue: 0.92)
 
     // Token buckets
     static let tOutput      = Color(red: 0.35, green: 0.87, blue: 0.53)
@@ -47,7 +42,6 @@ enum Palette {
         switch t.id {
         case AgentDescriptor.claude.id: return claude
         case AgentDescriptor.codex.id: return codex
-        case AgentDescriptor.cursor.id: return cursor
         default: return inkDim
         }
     }
@@ -55,7 +49,6 @@ enum Palette {
         switch t.id {
         case AgentDescriptor.claude.id: return claudeDeep
         case AgentDescriptor.codex.id: return codexDeep
-        case AgentDescriptor.cursor.id: return cursorDeep
         default: return inkFaint
         }
     }
@@ -121,12 +114,10 @@ enum Dim {
     static let panelWidth: CGFloat  = 440      // NSPanel width
     // 系统 API（行级）：NSPanel 是 AppKit 悬浮面板窗口。
     static let panelHeight: CGFloat = 540      // NSPanel height (holds the full dashboard)
-    static let pillWidth: CGFloat   = 244      // collapsed pill width (compact, under the notch)
     static let pillHeight: CGFloat  = 34
     static let pillCorner: CGFloat  = 16
-    static let cardWidth: CGFloat   = 384      // expanded dashboard width (> pillWidth)
+    static let cardWidth: CGFloat   = 384      // expanded dashboard width
     static let cardCorner: CGFloat  = 24
-    static let dropBelowNotch: CGFloat = 2     // gap between the notch bottom and the pill
 
     // "sides" mode: one plain bar spanning the notch; the middle (notch width) is
     // left empty, content sits on either side. Height = menu bar (flush, no protrusion).

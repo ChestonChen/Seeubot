@@ -5,10 +5,12 @@ import SwiftUI
 // - HStack：横向排布左右 bar 内容。
 // - Color.clear：透明占位，这里用来给刘海区域留空。
 // - .frame：固定左右区域和整体 bar 的宽高。
-/// sides / flat 收起态内容。外层黑色背景和裁剪由 `NotchRootView` 统一提供。
+/// Collapsed CONTENT for the **sides / flat** form. The black bar background + clipping
+/// is supplied by the shared morphing island in `NotchRootView`.
 ///
-/// - 有刘海：中间留出 notch 空洞，左边机器人，右边 working/idle。
-/// - 无刘海：没有中间空洞，直接变成顶部连续 bar。
+/// - Notched Macs: one bar spanning the notch — mascot on the left, a fixed-width empty
+///   gap over the notch, live metrics on the right.
+/// - Non-notched Macs: one flat continuous bar (no center gap) — mascot + metrics in a row.
 // 系统 API（行级）：View 是 SwiftUI 组件协议，body 描述界面内容。
 struct SidesBar: View {
     var stats: DashStats
@@ -29,13 +31,8 @@ struct SidesBar: View {
     private var idle: LiveMetric {
         LiveMetric(icon: "moon.zzz.fill", value: stats.totalIdle, color: Palette.idle)
     }
-    /// sides 形态下机器人靠右休息，working 时在左侧区域滑动。
-    // 系统 API（行级）：View 是 SwiftUI 组件协议，body 描述界面内容。
     private var mascot: some View {
-        WorkingMascotRunway(mood: mood, active: stats.totalWorking > 0,
-                            trackWidth: Dim.barSideWidth, height: barHeight,
-                            // 系统 API（行级）：Swift 标准数学函数，用来计算动画曲线或边界值。
-                            mascotSize: min(barHeight * 0.62, 21), restingEdge: .right)
+        MascotView(mood: mood, size: min(barHeight * 0.62, 21)).frame(width: 25).clipped()
     }
 
     // 系统 API（行级）：View 是 SwiftUI 组件协议，body 描述界面内容。
@@ -46,7 +43,8 @@ struct SidesBar: View {
                 // Notched: content flanks the empty notch gap.
                 // 系统 API（行级）：HStack 横向排列子视图。
                 HStack(spacing: 0) {
-                    mascot
+                    // 系统 API（行级）：HStack 横向排列子视图。
+                    HStack(spacing: 0) { Spacer(minLength: 0); mascot }
                         // 系统 API（行级）：.frame 设置视图期望宽高或对齐方式。
                         .frame(width: Dim.barSideWidth)
                     // 系统 API（行级）：Color 是 SwiftUI 颜色类型。
@@ -65,10 +63,7 @@ struct SidesBar: View {
                 // Non-notched: one continuous row, no gap.
                 // 系统 API（行级）：HStack 横向排列子视图。
                 HStack(spacing: 13) {
-                    WorkingMascotRunway(mood: mood, active: stats.totalWorking > 0,
-                                        trackWidth: 56, height: barHeight,
-                                        // 系统 API（行级）：Swift 标准数学函数，用来计算动画曲线或边界值。
-                                        mascotSize: min(barHeight * 0.62, 21), restingEdge: .right)
+                    mascot
                     working
                     idle
                 }

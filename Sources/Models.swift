@@ -17,7 +17,6 @@ struct AgentDescriptor: Codable, Equatable, Hashable, Identifiable {
 
     static let claude = AgentDescriptor(id: "claude", display: "Claude", glyph: "✦")
     static let codex = AgentDescriptor(id: "codex", display: "Codex", glyph: "◆")
-    static let cursor = AgentDescriptor(id: "cursor", display: "Cursor", glyph: "C")
 }
 
 enum SessionState: String, Codable {
@@ -35,7 +34,7 @@ enum WidgetMode: String, Codable, CaseIterable {
     var icon: String { self == .hanging ? "arrowtriangle.down.fill" : "arrow.left.and.right" }
 }
 
-/// 一个当前可展示的 agent 会话。Claude/Codex 通常对应进程，Cursor 则可能来自 transcript。
+/// 一个当前可展示的 agent 会话，通常对应一个正在运行的进程。
 struct LiveSession: Codable, Identifiable, Equatable {
     var id: String            // stable id: "\(tool)-\(pid)"
     var pid: Int
@@ -55,8 +54,6 @@ struct TokenBreakdown: Codable, Equatable {
     var cacheRead: Int = 0     // tokens served from cache (cheap re-reads)
 
     var total: Int { output + inputFresh + cacheCreate + cacheRead }
-    /// Everything that isn't a cheap cache re-read — closer to "real" throughput.
-    var billableish: Int { output + inputFresh + cacheCreate }
 
     static func + (a: TokenBreakdown, b: TokenBreakdown) -> TokenBreakdown {
         TokenBreakdown(output: a.output + b.output,
@@ -80,7 +77,7 @@ struct TokenBreakdown: Codable, Equatable {
     }
 }
 
-/// 某一个工具（Claude/Codex/Cursor）的聚合统计。
+/// 某一个工具（Claude/Codex）的聚合统计。
 struct ToolStat: Codable, Equatable {
     var tool: AgentDescriptor
     var live: Int
@@ -110,13 +107,6 @@ struct DashStats: Codable, Equatable {
         tokensAllTime: TokenBreakdown(), tokensToday: TokenBreakdown(),
         sessionsAllTime: 0, updatedAtEpoch: 0
     )
-
-    func stat(for tool: AgentDescriptor) -> ToolStat {
-        perTool.first { $0.tool.id == tool.id }
-            ?? ToolStat(tool: tool, live: 0, working: 0, idle: 0,
-                        tokensAllTime: TokenBreakdown(), tokensToday: TokenBreakdown(),
-                        sessionsAllTime: 0)
-    }
 }
 
 // MARK: - Human-friendly number formatting.
