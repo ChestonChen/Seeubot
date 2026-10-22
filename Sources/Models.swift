@@ -66,13 +66,9 @@ struct TokenBreakdown: Codable, Equatable {
     /// Component-wise (a − b), clamped at 0. Used to derive "today" from two
     /// cumulative Codex snapshots.
     static func clampedMinus(_ a: TokenBreakdown, _ b: TokenBreakdown) -> TokenBreakdown {
-        // 系统 API（行级）：Swift 标准数学函数，用来计算动画曲线或边界值。
         TokenBreakdown(output: max(0, a.output - b.output),
-                       // 系统 API（行级）：Swift 标准数学函数，用来计算动画曲线或边界值。
                        inputFresh: max(0, a.inputFresh - b.inputFresh),
-                       // 系统 API（行级）：Swift 标准数学函数，用来计算动画曲线或边界值。
                        cacheCreate: max(0, a.cacheCreate - b.cacheCreate),
-                       // 系统 API（行级）：Swift 标准数学函数，用来计算动画曲线或边界值。
                        cacheRead: max(0, a.cacheRead - b.cacheRead))
     }
 }
@@ -115,7 +111,6 @@ enum Fmt {
     /// 1234 -> "1.2K", 1_250_000 -> "1.25M", 3_400_000_000 -> "3.4B"
     static func compact(_ n: Int) -> String {
         let v = Double(n)
-        // 系统 API（行级）：Swift 标准数学函数，用来计算动画曲线或边界值。
         switch abs(n) {
         case 1_000_000_000...:
             return trim(v / 1_000_000_000) + "B"

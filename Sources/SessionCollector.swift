@@ -6,7 +6,7 @@ import Foundation
 // - JSONSerialization：把 JSONL 每一行解析成字典，读取 usage/token 字段。
 // - ISO8601DateFormatter：解析 transcript 里的 ISO 时间字符串。
 // - Process / Pipe：启动 ps、lsof 等系统命令并读取输出。
-// - FileHandle：读文件尾部、写 debug 输出、关闭文件句柄。
+// - FileHandle：把子进程的标准错误指向空设备。
 // - NSHomeDirectory：获取当前用户 home 目录，拼出 ~/.claude、~/.codex 路径。
 /// 采集器核心：扫描本地 agent transcript、token cache 和实时进程列表，
 /// 最终产出一个 `DashStats` 快照给 UI。
@@ -64,9 +64,7 @@ final class SessionCollector {
     /// 每次刷新采集一次，是采集链路总入口。
     /// 这里会把“文件统计 + 进程状态”合并成 Dashboard 数据。
     func collect() -> DashStats {
-        // 系统 API（行级）：Date() 获取当前时间。
         let now = Date().timeIntervalSince1970
-        // 系统 API（行级）：Calendar.startOfDay 计算当天零点时间。
         let startOfToday = Calendar.current.startOfDay(for: Date()).timeIntervalSince1970
         let activeAdapters = adapters
 
@@ -97,7 +95,6 @@ final class SessionCollector {
             let probedCwd = probe[proc.pid]?.cwd ?? ""
             let transcript = adapter.resolveTranscript(self, probedCwd, probe[proc.pid]?.transcript, infoByPath, &claimed)
             let sessionCwd = transcript?.cwd ?? probedCwd
-            // 系统 API（行级）：Swift 标准数学函数，用来计算动画曲线或边界值。
             let idleSeconds = transcript.map { max(0, now - $0.mtime) } ?? .infinity
             let state: SessionState = idleSeconds < Self.workingWindow ? .working : .idle
             sessions.append(LiveSession(
@@ -188,9 +185,7 @@ final class SessionCollector {
 
     private func enumerateJSONL(dir: String) -> [String] {
         // 递归枚举 jsonl transcript。subagents 暂时跳过，避免把子任务重复算成主 session。
-        // 系统 API（行级）：FileManager.default 是系统文件管理器，用来枚举和读取本地文件。
         let fm = FileManager.default
-        // 系统 API（行级）：FileManager.enumerator 递归遍历目录。
         guard let en = fm.enumerator(at: URL(fileURLWithPath: dir),
                                      includingPropertiesForKeys: [.isRegularFileKey],
                                      options: [.skipsHiddenFiles]) else { return [] }
@@ -203,7 +198,6 @@ final class SessionCollector {
     }
 
     private func statOf(_ path: String) -> (mtime: TimeInterval, size: Int)? {
-        // 系统 API（行级）：FileManager.default 是系统文件管理器，用来枚举和读取本地文件。
         guard let attrs = try? FileManager.default.attributesOfItem(atPath: path) else { return nil }
         let mtime = (attrs[.modificationDate] as? Date)?.timeIntervalSince1970 ?? 0
         let size = (attrs[.size] as? Int) ?? 0
@@ -244,7 +238,6 @@ final class SessionCollector {
 
     private func parseClaude(_ path: String, startOfToday: TimeInterval) -> (TokenBreakdown, TokenBreakdown) {
         // Claude 的 usage 字段是逐条 assistant message 写入的，因此按 message 去重后累加。
-        // 系统 API（行级）：FileManager.default 是系统文件管理器，用来枚举和读取本地文件。
         guard let data = FileManager.default.contents(atPath: path) else { return (TokenBreakdown(), TokenBreakdown()) }
         let text = String(decoding: data, as: UTF8.self)
         var all = TokenBreakdown(), today = TokenBreakdown()
@@ -252,7 +245,6 @@ final class SessionCollector {
         text.enumerateLines { line, _ in
             guard line.contains("\"usage\"") else { return }
             guard let lineData = line.data(using: .utf8),
-                  // 系统 API（行级）：JSONSerialization.jsonObject 把 JSON Data 解析成字典/数组。
                   let obj = try? JSONSerialization.jsonObject(with: lineData) as? [String: Any],
                   (obj["type"] as? String) == "assistant",
                   let msg = obj["message"] as? [String: Any],
@@ -274,7 +266,6 @@ final class SessionCollector {
 
     private func parseCodex(_ path: String, startOfToday: TimeInterval) -> (TokenBreakdown, TokenBreakdown, String?) {
         // Codex 记录的是累计 total_token_usage，所以 today 需要用“当前累计 - 今日前累计”推出来。
-        // 系统 API（行级）：FileManager.default 是系统文件管理器，用来枚举和读取本地文件。
         guard let data = FileManager.default.contents(atPath: path) else { return (TokenBreakdown(), TokenBreakdown(), nil) }
         let text = String(decoding: data, as: UTF8.self)
         var cwd: String? = nil
@@ -285,7 +276,6 @@ final class SessionCollector {
             if isFirst {
                 isFirst = false
                 if let lineData = line.data(using: .utf8),
-                   // 系统 API（行级）：JSONSerialization.jsonObject 把 JSON Data 解析成字典/数组。
                    let obj = try? JSONSerialization.jsonObject(with: lineData) as? [String: Any],
                    (obj["type"] as? String) == "session_meta",
                    let payload = obj["payload"] as? [String: Any] {
@@ -303,7 +293,6 @@ final class SessionCollector {
             let input = totalUsage["input_tokens"] as? Int ?? 0
             let cached = totalUsage["cached_input_tokens"] as? Int ?? 0
             breakdown.output = totalUsage["output_tokens"] as? Int ?? 0
-            // 系统 API（行级）：Swift 标准数学函数，用来计算动画曲线或边界值。
             breakdown.inputFresh = max(0, input - cached)
             breakdown.cacheRead = cached
             last = breakdown
@@ -317,14 +306,12 @@ final class SessionCollector {
     }
 
     private static let isoFrac: ISO8601DateFormatter = {
-        // 系统 API（行级）：ISO8601DateFormatter 解析 ISO8601 时间字符串。
         let f = ISO8601DateFormatter()
         f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return f
     }()
 
     private static let isoPlain: ISO8601DateFormatter = {
-        // 系统 API（行级）：ISO8601DateFormatter 解析 ISO8601 时间字符串。
         let f = ISO8601DateFormatter()
         f.formatOptions = [.withInternetDateTime]
         return f
@@ -464,17 +451,12 @@ final class SessionCollector {
     // MARK: - Subprocess helper
 
     private func runCmd(_ launch: String, _ args: [String]) -> String {
-        // 系统 API（行级）：Process 用来启动系统命令。
         let process = Process()
-        // 系统 API（行级）：URL 构造系统 URL 对象。
         process.executableURL = URL(fileURLWithPath: launch)
         process.arguments = args
-        // 系统 API（行级）：Pipe 接收子进程标准输出。
         let pipe = Pipe()
         process.standardOutput = pipe
-        // 系统 API（行级）：FileHandle 读写文件句柄或标准输出/错误。
         process.standardError = FileHandle.nullDevice
-        // 系统 API（行级）：app.run() 进入 macOS 主事件循环，窗口和菜单开始响应事件。
         do { try process.run() } catch { return "" }
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         process.waitUntilExit()

@@ -28,7 +28,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// App 启动后的主入口：创建数据仓库、SwiftUI 根视图、透明 NSPanel，并开始 hover 轮询。
     func applicationDidFinishLaunching(_ note: Notification) {
         // 设为配件 App：不进 Dock，不抢前台激活（适合菜单栏/刘海挂件）。
-        // 系统 API（行级）：NSApp 是当前 AppKit 应用的快捷全局对象。
         NSApp.setActivationPolicy(.accessory)
 
         // 选一块要贴的屏幕：优先带刘海的，否则主屏。
@@ -59,10 +58,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.orderFrontRegardless()
 
         // 监听屏幕参数变化（外接屏/分辨率/睡眠唤醒）：回调里重测 notch 并重新定位。
-        // 系统 API（行级）：NotificationCenter.addObserver 注册系统通知监听。
         NotificationCenter.default.addObserver(
             self, selector: #selector(screensChanged),
-            // 系统 API（行级）：didChangeScreenParametersNotification 是屏幕参数变化通知。
             name: NSApplication.didChangeScreenParametersNotification, object: nil)
 
         // 每 0.1s 轮询鼠标位置，更新 store.hover，驱动展开/收起。
@@ -81,36 +78,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func scheduleUpdateChecks() {
         checkForUpdate()
         // re-check every 6 hours
-        // 系统 API（行级）：Timer 是系统定时器，用于周期性执行闭包。
         let t = Timer(timeInterval: 6 * 3600, repeats: true) { [weak self] _ in
-            // 系统 API（行级）：MainActor.assumeIsolated 告诉编译器当前代码在主线程上下文。
             MainActor.assumeIsolated { self?.checkForUpdate() }
         }
-        // 系统 API（行级）：RunLoop.main.add 把 Timer 加入主运行循环。
         RunLoop.main.add(t, forMode: .common)
     }
 
     /// 只更新 `store.updateAvailable`，不影响主监控功能。
     private func checkForUpdate() {
         Updater.checkLatest { tag in
-            // 系统 API（行级）：Task { @MainActor } 把异步回调切回主线程更新 UI。
             Task { @MainActor in self.store.updateAvailable = tag }
         }
     }
 
-    // 系统 API（行级）：NSWorkspace.shared.open 调用系统默认方式打开 URL 或文件。
     @objc private func openReleases() { NSWorkspace.shared.open(Updater.releasesURL) }
 
     // MARK: - Menu bar (control surface: show/hide, switch form, quit)
 
     /// 创建右上角状态栏菜单，提供切换形态、隐藏组件、打开主页和退出入口。
     private func setupMenuBar() {
-        // 系统 API（行级）：NSStatusBar 创建菜单栏状态项，也就是右上角小图标入口。
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        // 系统 API（行级）：NSImage(systemSymbolName:) 从系统 SF Symbols 里取菜单栏图标。
         if let img = NSImage(systemSymbolName: "gauge.with.dots.needle.bottom.50percent",
                              accessibilityDescription: "Seeubot")
-                     // 系统 API（行级）：NSImage(systemSymbolName:) 从系统 SF Symbols 里取菜单栏图标。
                      ?? NSImage(systemSymbolName: "gauge.medium", accessibilityDescription: "Seeubot") {
             img.isTemplate = true
             item.button?.image = img
@@ -118,39 +107,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             item.button?.title = "◆"
         }
 
-        // 系统 API（行级）：NSMenu 是 AppKit 下拉菜单容器。
         let menu = NSMenu()
-        // 系统 API（行级）：AppKit 用 delegate 接收应用生命周期回调。
         menu.delegate = self
 
-        // 系统 API（行级）：NSMenuItem 是 AppKit 菜单中的一项。
         let header = NSMenuItem(title: "Seeubot", action: nil, keyEquivalent: "")
         header.isEnabled = false
         menu.addItem(header); headerItem = header
         menu.addItem(.separator())
 
-        // 系统 API（行级）：NSMenuItem 是 AppKit 菜单中的一项。
         let upd = NSMenuItem(title: "Check for Updates…", action: #selector(openReleases), keyEquivalent: "")
         upd.target = self; menu.addItem(upd); updateItem = upd
         menu.addItem(.separator())
 
-        // 系统 API（行级）：NSMenuItem 是 AppKit 菜单中的一项。
         let hang = NSMenuItem(title: "Hanging pill", action: #selector(setHanging), keyEquivalent: "")
         hang.target = self; menu.addItem(hang); hangingItem = hang
-        // 系统 API（行级）：NSMenuItem 是 AppKit 菜单中的一项。
         let sides = NSMenuItem(title: "Bar", action: #selector(setSides), keyEquivalent: "")
         sides.target = self; menu.addItem(sides); sidesItem = sides
         menu.addItem(.separator())
 
-        // 系统 API（行级）：NSMenuItem 是 AppKit 菜单中的一项。
         let vis = NSMenuItem(title: "Hide widget", action: #selector(toggleVisibility), keyEquivalent: "h")
         vis.target = self; menu.addItem(vis); visItem = vis
         menu.addItem(.separator())
 
-        // 系统 API（行级）：NSMenuItem 是 AppKit 菜单中的一项。
         let gh = NSMenuItem(title: "Homepage…", action: #selector(openHomepage), keyEquivalent: "")
         gh.target = self; menu.addItem(gh)
-        // 系统 API（行级）：NSMenuItem 是 AppKit 菜单中的一项。
         let quit = NSMenuItem(title: "Quit Seeubot", action: #selector(quit), keyEquivalent: "q")
         quit.target = self; menu.addItem(quit)
 
@@ -163,10 +143,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// 切到“刘海两侧 bar”形态。
     @objc private func setSides() { store.mode = .sides; ensureVisible() }
     @objc private func openHomepage() {
-        // 系统 API（行级）：NSWorkspace.shared.open 调用系统默认方式打开 URL 或文件。
         if let u = URL(string: Self.homepage) { NSWorkspace.shared.open(u) }
     }
-    // 系统 API（行级）：NSApp 是当前 AppKit 应用的快捷全局对象。
     @objc private func quit() { NSApp.terminate(nil) }
 
     @objc private func toggleVisibility() {
@@ -181,7 +159,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// way to reach Quit even if the menu-bar icon is hidden behind the notch.
     private func showControlMenu() {
         guard let menu = statusItem?.menu else { return }
-        // 系统 API（行级）：NSEvent.mouseLocation 读取全局鼠标坐标。
         menu.popUp(positioning: nil, at: NSEvent.mouseLocation, in: nil)
     }
 
@@ -189,7 +166,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// 优先选择带刘海的屏幕；没有刘海时退回主屏。
     private static func targetScreen() -> NSScreen? {
-        // 系统 API（行级）：NSScreen 提供当前屏幕列表和主屏信息。
         NSScreen.screens.first { $0.safeAreaInsets.top > 0 } ?? NSScreen.main
     }
 
@@ -215,19 +191,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// 用 0.1s 轮询鼠标位置判断展开/收起。透明 click-through 窗口下这比 enter/leave 更稳定。
     private func startHoverTracking() {
-        // 系统 API（行级）：Timer 是系统定时器，用于周期性执行闭包。
         let t = Timer(timeInterval: 0.10, repeats: true) { [weak self] _ in
-            // 系统 API（行级）：MainActor.assumeIsolated 告诉编译器当前代码在主线程上下文。
             MainActor.assumeIsolated { self?.updateHover() }
         }
-        // 系统 API（行级）：RunLoop.main.add 把 Timer 加入主运行循环。
         RunLoop.main.add(t, forMode: .common)
         hoverTimer = t
     }
 
     /// 根据鼠标是否在热区内，更新 `store.hover`；这个值会驱动胶囊展开成 dashboard。
     private func updateHover() {
-        // 系统 API（行级）：NSEvent.mouseLocation 读取全局鼠标坐标。
         let mouse = NSEvent.mouseLocation                     // global, bottom-left origin
         let pf = panel.frame
         let m = store.metrics
@@ -264,7 +236,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if inside != store.hover {
             store.hover = inside
             if ProcessInfo.processInfo.environment["SEEUBOT_DEBUG"] != nil {
-                // 系统 API（行级）：FileHandle 读写文件句柄或标准输出/错误。
                 FileHandle.standardError.write(
                     "hover=\(inside) mouse=\(Int(mouse.x)),\(Int(mouse.y))\n"
                         .data(using: .utf8)!)

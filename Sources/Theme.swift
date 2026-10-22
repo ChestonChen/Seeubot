@@ -14,11 +14,8 @@ enum Palette {
     static let notchBlack   = Color(red: 0.04, green: 0.04, blue: 0.05)
     static let panelBottom  = Color(red: 0.05, green: 0.05, blue: 0.07)
 
-    // 系统 API（行级）：Color 是 SwiftUI 颜色类型。
     static let ink          = Color.white
-    // 系统 API（行级）：Color 是 SwiftUI 颜色类型。
     static let inkDim       = Color.white.opacity(0.62)
-    // 系统 API（行级）：Color 是 SwiftUI 颜色类型。
     static let inkFaint     = Color.white.opacity(0.34)
 
     // Session states
@@ -54,7 +51,6 @@ enum Palette {
     }
 
     static func gradient(_ t: AgentDescriptor) -> LinearGradient {
-        // 系统 API（行级）：LinearGradient 创建线性渐变。
         LinearGradient(colors: [tool(t), toolDeep(t)],
                        startPoint: .topLeading, endPoint: .bottomTrailing)
     }
@@ -90,12 +86,10 @@ struct NotchMetrics {
 
         var notchWidth: CGFloat = 0
         if hasNotch, let l = screen.auxiliaryTopLeftArea, let r = screen.auxiliaryTopRightArea {
-            // 系统 API（行级）：Swift 标准数学函数，用来计算动画曲线或边界值。
             notchWidth = max(120, full - l.width - r.width)
         }
         let notchHeight = hasNotch ? screen.safeAreaInsets.top : 0
         // Menu-bar bottom = where windows begin. This is the clearance the content needs.
-        // 系统 API（行级）：Swift 标准数学函数，用来计算动画曲线或边界值。
         let menuBar = max(24, screen.frame.maxY - screen.visibleFrame.maxY)
 
         return NotchMetrics(hasNotch: hasNotch, notchWidth: notchWidth, notchHeight: notchHeight,
@@ -110,9 +104,7 @@ struct NotchMetrics {
 /// covers menu-bar tools. The collapsed pill is intentionally narrow, and the
 /// expanded card is a strict superset of it so hover never oscillates.
 enum Dim {
-    // 系统 API（行级）：NSPanel 是 AppKit 悬浮面板窗口。
     static let panelWidth: CGFloat  = 440      // NSPanel width
-    // 系统 API（行级）：NSPanel 是 AppKit 悬浮面板窗口。
     static let panelHeight: CGFloat = 540      // NSPanel height (holds the full dashboard)
     static let pillHeight: CGFloat  = 34
     static let pillCorner: CGFloat  = 16

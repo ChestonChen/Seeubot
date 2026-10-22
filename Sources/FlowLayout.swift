@@ -16,10 +16,8 @@ struct FlowLayout: Layout {
         let maxWidth = proposal.width ?? .infinity
         var rows = layout(subviews: subviews, maxWidth: maxWidth)
         let height = rows.last.map { $0.y + $0.height } ?? 0
-        // 系统 API（行级）：Swift 标准数学函数，用来计算动画曲线或边界值。
         let width = rows.map { $0.maxX }.max() ?? 0
         rows.removeAll()
-        // 系统 API（行级）：Swift 标准数学函数，用来计算动画曲线或边界值。
         return CGSize(width: min(width, maxWidth), height: height)
     }
 
@@ -45,7 +43,6 @@ struct FlowLayout: Layout {
             let ideal = sub.sizeThatFits(.unspecified)
             // Clamp to the available width so an over-long item truncates instead of
             // overflowing and getting hard-clipped by the card.
-            // 系统 API（行级）：Swift 标准数学函数，用来计算动画曲线或边界值。
             let sz = CGSize(width: min(ideal.width, maxWidth.isFinite ? maxWidth : ideal.width),
                             height: ideal.height)
             if x > 0, x + sz.width > maxWidth {
@@ -55,7 +52,6 @@ struct FlowLayout: Layout {
             }
             items.append(Item(index: i, x: x, y: y, size: sz))
             x += sz.width + spacing
-            // 系统 API（行级）：Swift 标准数学函数，用来计算动画曲线或边界值。
             rowHeight = max(rowHeight, sz.height)
         }
         return items

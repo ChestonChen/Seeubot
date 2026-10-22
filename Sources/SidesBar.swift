@@ -11,7 +11,6 @@ import SwiftUI
 /// - Notched Macs: one bar spanning the notch — mascot on the left, a fixed-width empty
 ///   gap over the notch, live metrics on the right.
 /// - Non-notched Macs: one flat continuous bar (no center gap) — mascot + metrics in a row.
-// 系统 API（行级）：View 是 SwiftUI 组件协议，body 描述界面内容。
 struct SidesBar: View {
     var stats: DashStats
     var metrics: NotchMetrics
@@ -35,33 +34,22 @@ struct SidesBar: View {
         MascotView(mood: mood, size: min(barHeight * 0.62, 21)).frame(width: 25).clipped()
     }
 
-    // 系统 API（行级）：View 是 SwiftUI 组件协议，body 描述界面内容。
     var body: some View {
-        // 系统 API（行级）：Group 只组织 View，不额外产生布局容器。
         Group {
             if metrics.notchWidth > 0 {
                 // Notched: content flanks the empty notch gap.
-                // 系统 API（行级）：HStack 横向排列子视图。
                 HStack(spacing: 0) {
-                    // 系统 API（行级）：HStack 横向排列子视图。
                     HStack(spacing: 0) { Spacer(minLength: 0); mascot }
-                        // 系统 API（行级）：.frame 设置视图期望宽高或对齐方式。
                         .frame(width: Dim.barSideWidth)
-                    // 系统 API（行级）：Color 是 SwiftUI 颜色类型。
                     Color.clear.frame(width: metrics.notchWidth)
-                    // 系统 API（行级）：HStack 横向排列子视图。
                     HStack(spacing: 0) {
-                        // 系统 API（行级）：HStack 横向排列子视图。
                         HStack(spacing: 10) { working; idle }
-                        // 系统 API（行级）：Spacer 是 SwiftUI 弹性空白，占据剩余空间。
                         Spacer(minLength: 0)
                     }
-                    // 系统 API（行级）：.frame 设置视图期望宽高或对齐方式。
                     .frame(width: Dim.barSideWidth)
                 }
             } else {
                 // Non-notched: one continuous row, no gap.
-                // 系统 API（行级）：HStack 横向排列子视图。
                 HStack(spacing: 13) {
                     mascot
                     working
@@ -69,7 +57,6 @@ struct SidesBar: View {
                 }
             }
         }
-        // 系统 API（行级）：.frame 设置视图期望宽高或对齐方式。
         .frame(width: SidesBar.width(metrics), height: barHeight)
     }
 }

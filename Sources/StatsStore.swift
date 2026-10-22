@@ -12,23 +12,15 @@ import Combine
 /// UI 的状态仓库：定时调用 `SessionCollector`，再把最新 `DashStats` 发布给 SwiftUI。
 @MainActor
 final class StatsStore: ObservableObject {
-    // 系统 API（行级）：@Published 标记状态变化会通知 SwiftUI 刷新。
     @Published var stats: DashStats = .empty
-    // 系统 API（行级）：@Published 标记状态变化会通知 SwiftUI 刷新。
     @Published var loaded: Bool = false
-    // 系统 API（行级）：@Published 标记状态变化会通知 SwiftUI 刷新。
     @Published var metrics: NotchMetrics
-    // 系统 API（行级）：@Published 标记状态变化会通知 SwiftUI 刷新。
     @Published var hover: Bool = false            // cursor is over the widget
-    // 系统 API（行级）：@Published 标记状态变化会通知 SwiftUI 刷新。
     @Published var updateAvailable: String? = nil // latest release tag if newer than us
     var onMenu: (() -> Void)?                     // in-widget "⋯" button → show control menu
     /// 用户选择的收起形态。写入 UserDefaults，所以重启后仍会记住。
-    // 系统 API（行级）：@Published 标记状态变化会通知 SwiftUI 刷新。
     @Published var mode: WidgetMode = WidgetMode(rawValue:
-        // 系统 API（行级）：UserDefaults 是系统轻量本地存储。
         UserDefaults.standard.string(forKey: "seeubot.mode") ?? "") ?? .hanging {
-        // 系统 API（行级）：UserDefaults 是系统轻量本地存储。
         didSet { UserDefaults.standard.set(mode.rawValue, forKey: "seeubot.mode") }
     }
 
@@ -39,7 +31,6 @@ final class StatsStore: ObservableObject {
 
     // Only ever touched on `queue`, so accessing it off the main actor is safe.
     nonisolated(unsafe) private let collector = SessionCollector()
-    // 系统 API（行级）：DispatchQueue 创建后台队列，避免耗时任务阻塞 UI。
     private let queue = DispatchQueue(label: "seeubot.collector", qos: .utility)
     // Drop a tick if a previous collect() is still running (only touched on `queue`).
     nonisolated(unsafe) private var collecting = false
@@ -51,12 +42,10 @@ final class StatsStore: ObservableObject {
         self.metrics = metrics
         // 启动时先采集一次，避免 UI 长时间停留在空态。
         refresh()
-        // 系统 API（行级）：Timer 是系统定时器，用于周期性执行闭包。
         let t = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
             self?.refresh()
         }
         t.tolerance = 0.1
-        // 系统 API（行级）：RunLoop.main.add 把 Timer 加入主运行循环。
         RunLoop.main.add(t, forMode: .common)
         timer = t
     }
@@ -73,7 +62,6 @@ final class StatsStore: ObservableObject {
             self.collecting = true
             defer { self.collecting = false }
             let snapshot = self.collector.collect()
-            // 系统 API（行级）：Task { @MainActor } 把异步回调切回主线程更新 UI。
             Task { @MainActor in
                 withAnimation(.spring(response: 0.55, dampingFraction: 0.8)) {
                     self.stats = snapshot
