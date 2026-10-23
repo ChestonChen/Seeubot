@@ -66,7 +66,6 @@ struct NotchRootView: View {
             if expanded {
                 DashboardBody(stats: store.stats, loaded: store.loaded,
                               mode: store.mode, hasNotch: m.hasNotch,
-                              updateTag: store.updateAvailable,
                               onToggleMode: { store.toggleMode() },
                               onMenu: { store.onMenu?() })
                     .transition(.opacity.combined(with: .move(edge: .top)))

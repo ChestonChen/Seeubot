@@ -16,7 +16,6 @@ final class StatsStore: ObservableObject {
     @Published var loaded: Bool = false
     @Published var metrics: NotchMetrics
     @Published var hover: Bool = false            // cursor is over the widget
-    @Published var updateAvailable: String? = nil // latest release tag if newer than us
     var onMenu: (() -> Void)?                     // in-widget "⋯" button → show control menu
     /// 用户选择的收起形态。写入 UserDefaults，所以重启后仍会记住。
     @Published var mode: WidgetMode = WidgetMode(rawValue:

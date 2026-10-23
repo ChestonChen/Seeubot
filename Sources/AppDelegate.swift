@@ -5,7 +5,7 @@ import SwiftUI
 // - NSApplicationDelegate：AppKit 的应用生命周期回调协议，app 启动完成后会调用 applicationDidFinishLaunching。
 // - NSStatusItem / NSMenu / NSMenuItem：macOS 菜单栏图标和下拉菜单。
 // - NotificationCenter.addObserver：监听系统事件，这里用于屏幕参数变化。
-// - Timer + RunLoop：定时执行任务，这里用于 hover 轮询和定期检查更新。
+// - Timer + RunLoop：定时执行任务，这里用于 hover 轮询。
 // - NSEvent.mouseLocation：读取全局鼠标位置，用来判断鼠标是否进入组件热区。
 // - NSWorkspace.shared.open：调用系统打开网页链接。
 // - Task { @MainActor in ... }：从异步回调切回主线程更新 UI 状态。
@@ -13,7 +13,7 @@ import SwiftUI
 final class AppDelegate: NSObject, NSApplicationDelegate {
     static let homepage = "https://github.com/ChestonChen/Seeubot"
 
-    // AppDelegate 是 macOS 端入口：负责创建悬浮窗、菜单栏、hover 轮询和更新检查。
+    // AppDelegate 是 macOS 端入口：负责创建悬浮窗、菜单栏和 hover 轮询。
     private var panel: NotchPanel!
     private var store: StatsStore!
     private var hoverTimer: Timer?
@@ -34,7 +34,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let screen = Self.targetScreen()
         // 量这块屏的刘海宽、菜单栏高等几何信息。
         let metrics = NotchMetrics.measure(screen)
-        // 建状态仓库：立刻采一次会话数据，并启动 1s 定时刷新。
+        // 建状态仓库：立刻采一次会话数据，并启动 3s 定时刷新。
         store = StatsStore(metrics: metrics)
         // 岛内「⋯」按钮点下去时，弹出和状态栏同一套控制菜单。
         store.onMenu = { [weak self] in self?.showControlMenu() }
@@ -66,32 +66,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         startHoverTracking()
         // 创建右上角状态栏图标和菜单（形态切换 / 显隐 / 退出等）。
         setupMenuBar()
-        // 查一次 GitHub 是否有新版本，并每 6 小时再查。
-        scheduleUpdateChecks()
     }
-
-    // MARK: - Update checks
-
-    private var updateItem: NSMenuItem?
-
-    /// 启动时查一次 GitHub Release，之后每 6 小时查一次是否有新版本。
-    private func scheduleUpdateChecks() {
-        checkForUpdate()
-        // re-check every 6 hours
-        let t = Timer(timeInterval: 6 * 3600, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.checkForUpdate() }
-        }
-        RunLoop.main.add(t, forMode: .common)
-    }
-
-    /// 只更新 `store.updateAvailable`，不影响主监控功能。
-    private func checkForUpdate() {
-        Updater.checkLatest { tag in
-            Task { @MainActor in self.store.updateAvailable = tag }
-        }
-    }
-
-    @objc private func openReleases() { NSWorkspace.shared.open(Updater.releasesURL) }
 
     // MARK: - Menu bar (control surface: show/hide, switch form, quit)
 
@@ -113,10 +88,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let header = NSMenuItem(title: "Seeubot", action: nil, keyEquivalent: "")
         header.isEnabled = false
         menu.addItem(header); headerItem = header
-        menu.addItem(.separator())
-
-        let upd = NSMenuItem(title: "Check for Updates…", action: #selector(openReleases), keyEquivalent: "")
-        upd.target = self; menu.addItem(upd); updateItem = upd
         menu.addItem(.separator())
 
         let hang = NSMenuItem(title: "Hanging pill", action: #selector(setHanging), keyEquivalent: "")
@@ -245,7 +216,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 extension AppDelegate: NSMenuDelegate {
-    /// 每次菜单弹出前刷新标题、形态勾选状态和更新提示。
+    /// 每次菜单弹出前刷新标题和形态勾选状态。
     func menuNeedsUpdate(_ menu: NSMenu) {
         let s = store.stats
         headerItem?.title = "Seeubot · \(s.totalWorking) working · \(s.totalIdle) idle"
@@ -258,11 +229,5 @@ extension AppDelegate: NSMenuDelegate {
         sidesItem?.state = store.mode == .sides ? .on : .off
 
         visItem?.title = widgetVisible ? "Hide widget" : "Show widget"
-
-        if let tag = store.updateAvailable {
-            updateItem?.title = "Update available: \(tag) — click to update"
-        } else {
-            updateItem?.title = "Up to date · v\(Updater.currentVersion)"
-        }
     }
 }

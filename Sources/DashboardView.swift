@@ -17,7 +17,6 @@ struct DashboardBody: View {
     var loaded: Bool
     var mode: WidgetMode = .hanging
     var hasNotch: Bool = true
-    var updateTag: String? = nil
     var onToggleMode: () -> Void = {}
     var onMenu: () -> Void = {}
 
@@ -53,7 +52,7 @@ struct DashboardBody: View {
 
     // MARK: Header
 
-    /// Dashboard 顶部：机器人、标题、更新提示、形态切换和菜单。
+    /// Dashboard 顶部：机器人、标题、形态切换和菜单。
     private var header: some View {
         HStack(alignment: .center, spacing: 10) {
             MascotView(mood: Mood.from(stats), size: 34)
@@ -67,7 +66,6 @@ struct DashboardBody: View {
                     .tracking(1.5)
             }
             Spacer(minLength: 6)
-            if updateTag != nil { updateBadge }
             if hasNotch { modeToggle }
             menuButton
         }
@@ -89,7 +87,7 @@ struct DashboardBody: View {
     }
 
     /// The "⋯" control button — always-visible, notch-proof way to reach show/hide,
-    /// switch form, check updates and **quit**.
+    /// switch form and **quit**.
     private var menuButton: some View {
         Image(systemName: "ellipsis.circle.fill")
             .font(.system(size: 17))
@@ -97,19 +95,6 @@ struct DashboardBody: View {
             .contentShape(Circle())
             .onTapGesture { onMenu() }
             .help("菜单 · 切换 / 隐藏 / 退出")
-    }
-
-    private var updateBadge: some View {
-        HStack(spacing: 3) {
-            Image(systemName: "arrow.down.circle.fill").font(.system(size: 9, weight: .bold))
-            Text("Update").font(Typo.rounded(9, .bold))
-        }
-        .foregroundStyle(Palette.working)
-        .padding(.horizontal, 7).padding(.vertical, 4)
-        .background(Capsule().fill(Palette.working.opacity(0.16)))
-        .contentShape(Capsule())
-        .onTapGesture { onMenu() }
-        .help("Update available \(updateTag ?? "")")
     }
 
     // MARK: Token hero
