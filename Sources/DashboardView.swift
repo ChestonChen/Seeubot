@@ -1,58 +1,36 @@
+//整个看板的view
 import SwiftUI
+//定义看板需要什么数据以及布局
 
-// 系统 API 速览：
-// - View / body：SwiftUI 组件协议和声明式 UI 入口。
-// - VStack / HStack / Spacer：纵向、横向和弹性空白布局。
-// - Text / Image(systemName:)：文字和 SF Symbols 系统图标。
-// - ForEach：按数组动态渲染多行工具统计或 session chip。
-// - GeometryReader：读取可用宽度，用于分段条和占比条。
-// - RoundedRectangle / Capsule / Ellipse：SwiftUI 内置形状。
-// - LinearGradient / AngularGradient：渐变填充，用于毛玻璃和光晕。
-// - TimelineView：按动画帧更新时间，用于旋转光晕。
-// - .font / .foregroundStyle / .padding / .frame：常见 UI 样式修饰符。
-/// 鼠标 hover 后展开的 dashboard。这里只做展示，不做采集逻辑。
-/// 它接收 `DashStats`，把 sessions、working/idle 和 token 画成卡片。
 struct DashboardBody: View {
     var stats: DashStats
     var loaded: Bool
-    var mode: WidgetMode = .hanging
+    var mode: WidgetMode = .hanging  
     var hasNotch: Bool = true
     var onToggleMode: () -> Void = {}
     var onMenu: () -> Void = {}
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 10) { //纵向排列 间距10 左对齐
             header
-
-            // 顶部三个统计块：当前 live session、正在工作、空闲。
             HStack(spacing: 8) {
                 StatTile(title: "Sessions", value: stats.totalLive, accent: Palette.ink.opacity(0.9), glyph: "◎")
                 StatTile(title: "Working", value: stats.totalWorking, accent: Palette.working,
                          glyph: "⚡", pulse: stats.totalWorking > 0)
                 StatTile(title: "Idle", value: stats.totalIdle, accent: Palette.idle, glyph: "☾")
             }
-
             tokenHero
-
-            // 每个 agent 的聚合行：动态遍历 perTool，不再写死。
             VStack(spacing: 10) {
                 ForEach(stats.perTool, id: \.tool.id) { stat in
                     ToolRow(stat: stat, grandTotal: stats.tokensAllTime.total)
                 }
             }
             .padding(.top, 2)
-
             liveSessions
-
             footer
         }
         .padding(13)
         .frame(width: Dim.cardWidth, alignment: .leading)
     }
-
-    // MARK: Header
-
-    /// Dashboard 顶部：机器人、标题、形态切换和菜单。
     private var header: some View {
         HStack(alignment: .center, spacing: 10) {
             MascotView(mood: Mood.from(stats), size: 34)
@@ -70,8 +48,6 @@ struct DashboardBody: View {
             menuButton
         }
     }
-
-    /// 点击切换收起态形态（hanging ⇄ sides），选择会存在 `StatsStore.mode` 里。
     private var modeToggle: some View {
         HStack(spacing: 4) {
             Image(systemName: mode.icon).font(.system(size: 9, weight: .bold))
@@ -85,9 +61,6 @@ struct DashboardBody: View {
         .onTapGesture { onToggleMode() }
         .help("切换形态：下挂 / 两侧")
     }
-
-    /// The "⋯" control button — always-visible, notch-proof way to reach show/hide,
-    /// switch form and **quit**.
     private var menuButton: some View {
         Image(systemName: "ellipsis.circle.fill")
             .font(.system(size: 17))
@@ -96,11 +69,8 @@ struct DashboardBody: View {
             .onTapGesture { onMenu() }
             .help("菜单 · 切换 / 隐藏 / 退出")
     }
-
-    // MARK: Token hero
-
-    /// 中间最大的 token 卡片：总 token、output token、今日 token 和分段条都在这里。
-    private var tokenHero: some View {
+    //总token使用量面板部分
+private var tokenHero: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .bottom) {
                 VStack(alignment: .leading, spacing: 2) {
@@ -146,10 +116,7 @@ struct DashboardBody: View {
                 .stroke(Palette.working.opacity(stats.totalWorking > 0 ? 0.22 : 0.12), lineWidth: 1.2)
         )
     }
-
-    // MARK: Live sessions
-
-    /// 展示最近活跃的 session chip；为空时显示“安静状态”。
+    //活会话统计部分
     private var liveSessions: some View {
         VStack(alignment: .leading, spacing: 7) {
             HStack(spacing: 5) {
@@ -171,11 +138,7 @@ struct DashboardBody: View {
             }
         }
     }
-
-    /// session chip 使用自定义 FlowLayout，数量多时自动换行。
-    private var sessionFlow: some View {
-        // Assigning to a local turns `layout { … }` into Dim.callAsFunction
-        // (a bare `FlowLayout(args) { … }` is mis-parsed as an initializer call).
+    private var sessionFlow: some View {//session胶囊排列
         let layout = FlowLayout(spacing: 6, lineSpacing: 6)
         return layout {
             ForEach(stats.sessions.prefix(8)) { s in
@@ -189,7 +152,6 @@ struct DashboardBody: View {
             }
         }
     }
-
     private var footer: some View {
         HStack(spacing: 4) {
             Text("\(stats.sessionsAllTime) sessions all-time")
@@ -198,21 +160,34 @@ struct DashboardBody: View {
             Text(toolList)
                 .font(Typo.rounded(9, .medium)).foregroundStyle(Palette.inkFaint)
         }
-    }
-
-    /// footer 右侧的工具列表，来自 perTool，所以支持动态 agent。
+    }//agent列表
     private var toolList: String {
         let names = stats.perTool.map { $0.tool.display }
         return names.isEmpty ? "No agents" : names.joined(separator: " · ")
     }
 }
+// ┌─ ① header ────────────────────────────────┐
+// │ 🤖  Seeubot                        [Bar] ⋯ │
+// ├─ ② 三个统计块 ────────────────────────────┤
+// │ [Sessions 3] [Working 2] [Idle 1]         │
+// ├─ ③ tokenHero ★★★★★ ──────────────────────┤
+// │ TOTAL TOKENS                    OUTPUT     │
+// │ 3.4B                              1.2B     │
+// │                                 today 12K  │
+// │ ▓▓▓▓▓▓▓▓▓▓▓▒▒▒▒▒▒░░░░░                    │
+// ├─ ④ 每个 agent 一行 ───────────────────────┤
+// │ [✦] Claude      12.3M  ▓▓▓▓▓░             │
+// │ [◆] Codex        4.1M  ▓▓░░░░░            │
+// ├─ ⑤ LIVE SESSIONS ─────────────────────────┤
+// │ ● ✦ Seeubot  ● ◆ api  (+2)                │
+// ├─ ⑥ footer ────────────────────────────────┤
+// │ 42 sessions all-time · Claude·Codex        │
+// └───────────────────────────────────────────┘
 
-// MARK: - Rotating conic aura behind the token total
-
+//token卡背后的彩色雾效果视图
 struct RotatingAura: View {
     var working: Bool = false
     var body: some View {
-        // working 时快速转，idle 时慢速转，避免无任务时浪费 GPU。
         TimelineView(.animation(minimumInterval: working ? 1.0 / 60 : 1.0 / 6, paused: false)) { tl in
             let a = tl.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 8) / 8
             Ellipse()

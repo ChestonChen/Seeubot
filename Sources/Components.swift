@@ -1,23 +1,10 @@
+//可复用小组件
 import SwiftUI
-
-// 系统 API 速览：
-// - Text / Image(systemName:)：文字和系统图标。
-// - TimelineView：周期性驱动呼吸点动画。
-// - Circle / Capsule / RoundedRectangle：内置形状，用于点、胶囊和卡片。
-// - GeometryReader：读取可用宽度，计算 token 分段条每段长度。
-// - ForEach：循环生成 token legend、分段条等重复 UI。
-// - .contentTransition(.numericText)：数字变化时使用系统数字滚动动画。
-// - .monospacedDigit：让数字等宽，避免刷新时左右抖动。
-// - .ultraThinMaterial：系统毛玻璃材质。
-// - .background / .overlay / .shadow：常见 SwiftUI 外观叠加修饰符。
-// MARK: - Rolling number
-
-/// A compact-formatted number that animates its digits when it changes.
+//数字变化时的滚动数字过度动画view
 struct AnimatedNumber: View {
     var value: Int
     var font: Font
     var color: Color = Palette.ink
-
     var body: some View {
         Text(Fmt.compact(value))
             .font(font)
@@ -28,13 +15,11 @@ struct AnimatedNumber: View {
     }
 }
 
-// MARK: - Pulsing state dot
-
+//脉冲点视图
 struct PulseDot: View {
     var color: Color
     var active: Bool
     var size: CGFloat = 8
-
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !active)) { tl in
             let t = tl.date.timeIntervalSinceReferenceDate
@@ -58,13 +43,11 @@ struct PulseDot: View {
     }
 }
 
-/// A compact solid dot that gently breathes (subtle glow) when active — no large
-/// expanding ring, so it stays tidy in the tight collapsed pill.
+//呼吸效果
 struct GlowDot: View {
     var color: Color
     var active: Bool
     var size: CGFloat = 7
-
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 20, paused: !active)) { tl in
             let t = tl.date.timeIntervalSinceReferenceDate
@@ -79,16 +62,15 @@ struct GlowDot: View {
     }
 }
 
-/// One live metric shown in the collapsed widget: a glyph/dot + animated count.
+//图标+数字组合，收起时显示几个在忙 / 几个空闲
 struct LiveMetric: View {
     var icon: String
     var value: Int
     var color: Color
-    var pulse: Bool = false
-
+    var pulse: Bool = false 
     var body: some View {
         HStack(spacing: 4) {
-            if pulse {
+            if pulse {//活跃展示呼吸效果
                 GlowDot(color: color, active: true, size: 7)
             } else {
                 Image(systemName: icon).font(.system(size: 10, weight: .bold)).foregroundStyle(color)
@@ -98,13 +80,12 @@ struct LiveMetric: View {
     }
 }
 
-// MARK: - Glass surfaces
 
+//玻璃背景+统计方块
 struct GlassPanelBackground: View {
     var cornerRadius: CGFloat
     var accent: Color = Palette.ink
     var accentOpacity: Double = 0.18
-
     var body: some View {
         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
             .fill(.ultraThinMaterial)
@@ -127,10 +108,8 @@ struct GlassPanelBackground: View {
             .shadow(color: .black.opacity(0.16), radius: 10, x: 0, y: 5)
     }
 }
-
 struct GlassCapsuleBackground: View {
     var accent: Color
-
     var body: some View {
         Capsule()
             .fill(.ultraThinMaterial)
@@ -139,16 +118,18 @@ struct GlassCapsuleBackground: View {
             .overlay(Capsule().stroke(accent.opacity(0.3), lineWidth: 1))
     }
 }
+//状态类
 
-// MARK: - Stat tile
-
+// ┌────────────┐  ┌────────────┐  ┌────────────┐
+//    │ ● SESSIONS │  │ ● WORKING  │  │ ●  IDLE    │
+//    │ 3  ◎       │  │ 2  ⚡      │  │ 1  ☾       │
+//    └────────────┘  └────────────┘  └────────────┘ 3个stattile对象
 struct StatTile: View {
     var title: String
     var value: Int
     var accent: Color
     var glyph: String
     var pulse: Bool = false
-
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 5) {
@@ -175,19 +156,17 @@ struct StatTile: View {
     }
 }
 
-// MARK: - Segmented token bar
-
+//token条类view
+//彩色条
 struct SegmentedTokenBar: View {
     var tb: TokenBreakdown
     var height: CGFloat = 12
-
     private var segments: [(Color, Int, String)] {
         [(Palette.tOutput, tb.output, "Output"),
          (Palette.tInput, tb.inputFresh, "Input"),
          (Palette.tCacheCreate, tb.cacheCreate, "Cache-W"),
          (Palette.tCacheRead, tb.cacheRead, "Cache-R")]
     }
-
     var body: some View {
         let total = max(1, tb.total)
         VStack(alignment: .leading, spacing: 7) {
@@ -204,8 +183,6 @@ struct SegmentedTokenBar: View {
                 .clipShape(Capsule())
             }
             .frame(height: height)
-
-            // legend
             HStack(spacing: 10) {
                 ForEach(Array(segments.enumerated()), id: \.offset) { _, seg in
                     HStack(spacing: 3) {
@@ -220,16 +197,13 @@ struct SegmentedTokenBar: View {
     }
 }
 
-// MARK: - Per-tool row
-
+//一个工具一行的长条全部信息
 struct ToolRow: View {
     var stat: ToolStat
     var grandTotal: Int
-
     var body: some View {
         let accent = Palette.tool(stat.tool)
         HStack(spacing: 10) {
-            // badge
             ZStack {
                 RoundedRectangle(cornerRadius: 9, style: .continuous)
                     .fill(Palette.gradient(stat.tool))
@@ -253,7 +227,6 @@ struct ToolRow: View {
                     Text(Fmt.compact(stat.tokensAllTime.total))
                         .font(Typo.mono(11, .semibold)).foregroundStyle(accent)
                 }
-                // share bar
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
                         Capsule().fill(Color.white.opacity(0.06))
@@ -267,12 +240,9 @@ struct ToolRow: View {
         }
     }
 }
-
-// MARK: - Live session chip
-
+//每个会话一个胶囊，状态点，项目名
 struct SessionChip: View {
     var session: LiveSession
-
     var body: some View {
         let working = session.state == .working
         HStack(spacing: 6) {

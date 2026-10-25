@@ -1,67 +1,52 @@
 import SwiftUI
 import Combine
-
-// 系统 API 速览：
-// - ObservableObject：Combine/SwiftUI 的可观察对象协议，UI 可以订阅它。
-// - @Published：属性变化时自动通知 SwiftUI 重新渲染。
-// - UserDefaults：系统提供的本地轻量存储，用来记住用户选择的组件形态。
-// - DispatchQueue：后台队列，避免采集文件/进程时阻塞主线程。
-// - Timer.scheduledTimer：周期性触发刷新。
-// - RunLoop.main.add：把 timer 加到主运行循环，让 UI 交互时也持续触发。
-// - Task { @MainActor in ... }：采集完成后切回主线程更新 @Published 状态。
-/// UI 的状态仓库：定时调用 `SessionCollector`，再把最新 `DashStats` 发布给 SwiftUI。
 @MainActor
-final class StatsStore: ObservableObject {
-    @Published var stats: DashStats = .empty
-    @Published var loaded: Bool = false
-    @Published var metrics: NotchMetrics
-    @Published var hover: Bool = false            // cursor is over the widget
-    var onMenu: (() -> Void)?                     // in-widget "⋯" button → show control menu
-    /// 用户选择的收起形态。写入 UserDefaults，所以重启后仍会记住。
+final class StatsStore: ObservableObject {//可被观察的对象协议
+    //专门存界面状态的对象
+    //@Published` —— 标记「这个属性变化时要通知订阅者」。没有它，改了值界面不会动
+    @Published var metrics: NotchMetrics //界面几何尺寸
+    @Published var stats: DashStats = .empty //记录最新面板快照
+    @Published var loaded: Bool = false //是否采集过数据
+    @Published var hover: Bool = false //鼠标是否在热区
+    var onMenu: (() -> Void)?
+
+    //用户一旦切换菜单展示状态就在本地写入mode，然后下次启动直接读本地mode加载
     @Published var mode: WidgetMode = WidgetMode(rawValue:
         UserDefaults.standard.string(forKey: "seeubot.mode") ?? "") ?? .hanging {
         didSet { UserDefaults.standard.set(mode.rawValue, forKey: "seeubot.mode") }
     }
-
-    /// 展开态顶部按钮触发：在 hanging / sides 两种收起形态之间切换。
+    //展示状态变化的辅助函数
     func toggleMode() {
         withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) { mode = mode.next }
     }
-
-    // Only ever touched on `queue`, so accessing it off the main actor is safe.
+    //nonisolated(unsafe)标记「这个属性不属于主线程，我会自己在后台队列用它」，防止类被mainactor握住放在主线程进行数据采集
     nonisolated(unsafe) private let collector = SessionCollector()
+    //创建一条后台串行队列。`qos: .utility` = 低优先级，别和界面抢 CPU
     private let queue = DispatchQueue(label: "seeubot.collector", qos: .utility)
-    // Drop a tick if a previous collect() is still running (only touched on `queue`).
     nonisolated(unsafe) private var collecting = false
     private var timer: Timer?
-    private let interval: TimeInterval
-
+    private let interval: TimeInterval //定时器与时间戳，控制采集间隔
     init(interval: TimeInterval = 3, metrics: NotchMetrics) {
         self.interval = interval
         self.metrics = metrics
-        // 启动时先采集一次，避免 UI 长时间停留在空态。
-        refresh()
+        refresh()//构造的时候立刻采集刷新一次，避免面板是空的 丢到后台队列，内部执行collect然后回来赋值
         let t = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
             self?.refresh()
         }
-        t.tolerance = 0.1
+        t.tolerance = 0.1//允许系统把这个定时器的触发时间最多往后推 0.1 秒 ，为了合并定时器触发，省电
         RunLoop.main.add(t, forMode: .common)
         timer = t
     }
+    func updateMetrics(_ m: NotchMetrics) { metrics = m }//屏幕变化时更新几何
 
-    func updateMetrics(_ m: NotchMetrics) { metrics = m }
-
-    /// 真正的数据刷新入口。采集放在后台队列，避免扫描文件/进程时卡住 UI。
     nonisolated private func refresh() {
         queue.async { [weak self] in
             guard let self else { return }
-            // Skip if the previous collect hasn't finished — prevents a serial-queue
-            // backlog if a probe is ever slow.
             if self.collecting { return }
-            self.collecting = true
-            defer { self.collecting = false }
-            let snapshot = self.collector.collect()
-            Task { @MainActor in
+            self.collecting = true //采集完改变状态，防止重复采集
+            defer { self.collecting = false } //defer保证一定会被执行
+            let snapshot = self.collector.collect() //获取快照
+            Task { @MainActor in //切换主线程更新published 的快照
                 withAnimation(.spring(response: 0.55, dampingFraction: 0.8)) {
                     self.stats = snapshot
                 }
@@ -69,6 +54,6 @@ final class StatsStore: ObservableObject {
             }
         }
     }
-
+    //对象销毁时销毁计时器
     deinit { timer?.invalidate() }
 }

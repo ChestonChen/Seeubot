@@ -1,25 +1,14 @@
+//机器人文件
 import SwiftUI
-
-// 系统 API 速览：
-// - TimelineView(.animation)：按动画帧刷新 Canvas。
-// - Canvas / GraphicsContext：SwiftUI 的 2D 绘图 API，用来手绘机器人。
-// - Path：绘制圆角矩形、曲线、眼睛、嘴巴、星星等路径。
-// - CGPoint / CGSize / CGRect：几何类型，表示点、尺寸和矩形。
-// - Color / Gradient：颜色和渐变。
-// - Text：在 Canvas 里画 sleeping 状态的 “z”。
-// - sin / floor / abs / min / max：标准数学函数，用来生成眨眼、呼吸、跳动等动画曲线。
-enum Mood {
-    case excited   // sessions actively working
-    case idle      // sessions open but quiet
-    case sleeping  // nothing running
-
+enum Mood { //机器人的情绪由会话状态决定
+    case excited
+    case idle
+    case sleeping
     static func from(_ s: DashStats) -> Mood {
-        // UI 情绪只由整体 session 状态决定：有 working 最活跃，有 live 但无 working 则 idle。
         if s.totalWorking > 0 { return .excited }
         if s.totalLive > 0 { return .idle }
         return .sleeping
     }
-
     var bulb: Color {
         switch self {
         case .excited: return Palette.working
@@ -27,77 +16,58 @@ enum Mood {
         case .sleeping: return Palette.sleepy
         }
     }
-    /// Overall liveliness multiplier for the animations.
-    var energy: Double {
+    var energy: Double { //动画幅动程度
         switch self { case .excited: return 1.0; case .idle: return 0.5; case .sleeping: return 0.15 }
     }
 }
 
-/// Seeubot 小机器人：用 Canvas 手绘，不依赖图片资源。
-/// 它会根据 Mood 做眨眼、呼吸、摇头、打盹、工作时嘴巴 chatter 和星星效果。
-struct MascotView: View {
-    var mood: Mood
+struct MascotView: View {//机器人视图
+    var mood: Mood //情绪属性
     var size: CGFloat = 46
-
-    var body: some View {
+    var body: some View { //swiftui
+    //按屏幕刷新率持续重绘，并把「当前时间」传给闭包。所有动画都是这个时间的函数
         TimelineView(.animation) { tl in
             let t = tl.date.timeIntervalSinceReferenceDate
-            Canvas { ctx, canvas in
+            Canvas { ctx, canvas in //swiftui绘图
                 draw(ctx: &ctx, canvas: canvas, t: t)
             }
             .frame(width: size * 1.6, height: size * 1.7)
         }
         .accessibilityHidden(true)
     }
-
-    // Deterministic pseudo-random in 0..1 for a given "slot" (no Math.random so the
-    // animation stays stable frame-to-frame).
-    private func hash01(_ n: Double) -> Double {
+    private func hash01(_ n: Double) -> Double { //随机函数0-1
         let v = sin(n * 12.9898) * 43758.5453
         return v - floor(v)
     }
-    // 0→1→0 hump over a 0..1 phase.
-    private func hump(_ p: Double) -> Double { p <= 0 || p >= 1 ? 0 : sin(p * .pi) }
-
-    /// Canvas 的主绘制函数。所有表情和动画都由当前时间 `t` 和 mood 算出来。
-    private func draw(ctx: inout GraphicsContext, canvas: CGSize, t: Double) {
+    private func hump(_ p: Double) -> Double { p <= 0 || p >= 1 ? 0 : sin(p * .pi) }//驼峰曲线，机器人上下浮动
+    private func draw(ctx: inout GraphicsContext, canvas: CGSize, t: Double) { //主绘制函数，每0.1s调用一次根据mood画对应形态
         let s = size
         let cx = canvas.width / 2
         let cy = canvas.height * 0.56
         let e = mood.energy
-
-        // 每 4.2 秒一个动作槽，确定性随机选择跳一下或扭一下。
         let slotLen = 4.2
         let slot = floor(t / slotLen)
-        let sp = (t - slot * slotLen) / slotLen          // 0..1 within the slot
+        let sp = (t - slot * slotLen) / slotLen
         let r = hash01(slot)
         let doHop    = mood != .sleeping && r < 0.30
         let doWiggle = mood != .sleeping && r >= 0.30 && r < 0.58
-        let hopP     = doHop ? hump(min(1, sp * 3)) : 0            // quick hop early in the slot
+        let hopP     = doHop ? hump(min(1, sp * 3)) : 0
         let wiggleP  = doWiggle ? hump(min(1, sp * 2.2)) : 0
-
-        // 基础动作：呼吸、上下浮动、跳跃时拉伸/压扁、轻微倾斜。
         let bob = CGFloat(sin(t * 1.9) * 0.02 * (0.5 + e)) * s - CGFloat(hopP) * s * 0.16
         let breathe = 1 + CGFloat(sin(t * 1.9)) * 0.02
-        let stretch = 1 + CGFloat(hopP) * 0.10                     // taller on the way up
+        let stretch = 1 + CGFloat(hopP) * 0.10
         let squashX = 1 / (1 + CGFloat(hopP) * 0.06)
-        var tilt = CGFloat(sin(t * 0.8)) * 0.05 * CGFloat(0.4 + e) // gentle sway
+        var tilt = CGFloat(sin(t * 0.8)) * 0.05 * CGFloat(0.4 + e)
         tilt += CGFloat(sin(sp * .pi * 6)) * 0.16 * CGFloat(wiggleP)
-
         let headCenter = CGPoint(x: cx, y: cy + bob)
-
-        // ---- transform: everything below is drawn relative to the head center ----
         var g = ctx
         g.translateBy(x: headCenter.x, y: headCenter.y)
         g.rotate(by: .radians(Double(tilt)))
         g.scaleBy(x: breathe * squashX, y: breathe * stretch)
-
         let hw = s * 0.92, hh = s * 0.88
         let headRect = CGRect(x: -hw / 2, y: -hh / 2, width: hw, height: hh)
         let corner = s * 0.34
         let eyeColor = Color(red: 0.13, green: 0.15, blue: 0.24)
-
-        // ---------- Antenna (sways, bulb bobs & pulses) ----------
         let sway = CGFloat(sin(t * 1.6 + 0.6)) * s * 0.05 * CGFloat(0.5 + e)
         let base = CGPoint(x: 0, y: -hh / 2)
         let tip = CGPoint(x: sway, y: -hh / 2 - s * 0.26 - CGFloat(hopP) * s * 0.03)
@@ -106,7 +76,6 @@ struct MascotView: View {
         stalk.addQuadCurve(to: tip, control: CGPoint(x: sway * 0.5, y: -hh / 2 - s * 0.14))
         g.stroke(stalk, with: .color(Color.white.opacity(0.55)),
                  style: StrokeStyle(lineWidth: s * 0.045, lineCap: .round))
-
         let pulse = 0.55 + 0.45 * sin(t * (mood == .excited ? 7 : 2.4))
         let bulbR = s * 0.075 * (1 + 0.22 * CGFloat(pulse) * CGFloat(e))
         g.fill(Path(ellipseIn: CGRect(x: tip.x - bulbR * 2.6, y: tip.y - bulbR * 2.6,
@@ -115,8 +84,6 @@ struct MascotView: View {
                                      center: tip, startRadius: 0, endRadius: bulbR * 2.6))
         g.fill(Path(ellipseIn: CGRect(x: tip.x - bulbR, y: tip.y - bulbR, width: bulbR * 2, height: bulbR * 2)),
                with: .color(mood.bulb))
-
-        // ---------- Head ----------
         let headPath = Path(roundedRect: headRect, cornerRadius: corner)
         g.fill(headPath, with: .linearGradient(
             Gradient(colors: [Color(white: 0.97), Color(white: 0.82)]),
@@ -125,23 +92,17 @@ struct MascotView: View {
         g.fill(Path(roundedRect: CGRect(x: -hw / 2 + s * 0.12, y: headRect.minY + s * 0.07,
                                         width: hw - s * 0.24, height: s * 0.19), cornerRadius: s * 0.1),
                with: .color(Color.white.opacity(0.5)))
-
-        // ---------- Cheeks (breathing blush) ----------
         let cheekR = s * (0.07 + 0.012 * CGFloat(0.5 + 0.5 * sin(t * 2.6)) * CGFloat(e))
         let cheekY = s * 0.15
         for dx in [-s * 0.29, s * 0.29] {
             g.fill(Path(ellipseIn: CGRect(x: dx - cheekR, y: cheekY - cheekR, width: cheekR * 2, height: cheekR * 2)),
                    with: .color(Color(red: 1.0, green: 0.55, blue: 0.62).opacity(0.45 + 0.15 * pulse)))
         }
-
-        // ---------- Eyes (blink, glance around) ----------
-        // wandering gaze
         let look = CGPoint(x: CGFloat(sin(t * 0.9) * 0.5 + sin(t * 0.37) * 0.3) * s * 0.045 * CGFloat(0.4 + e),
                            y: CGFloat(sin(t * 0.6 + 1) * 0.4) * s * 0.03 * CGFloat(0.4 + e))
-        // blink: quick close roughly every 3.1s, with an occasional double-blink
         let bc = t.truncatingRemainder(dividingBy: 3.1)
         var blink = bc < 0.14 ? (1 - abs(bc - 0.07) / 0.07) : 0
-        if hash01(floor(t / 3.1)) < 0.3 {   // double blink sometimes
+        if hash01(floor(t / 3.1)) < 0.3 {
             let bc2 = bc - 0.26
             if bc2 > 0, bc2 < 0.14 { blink = max(blink, 1 - abs(bc2 - 0.07) / 0.07) }
         }
@@ -168,12 +129,9 @@ struct MascotView: View {
                 }
             }
         }
-
-        // ---------- Mouth ----------
         let mouthY = s * 0.26
         switch mood {
         case .excited:
-            // chatter: the open smile opens & closes like it's talking/typing
             let chatter = 0.45 + 0.55 * abs(sin(t * 9))
             let mw = s * 0.24, mh = s * (0.07 + 0.13 * chatter)
             let m = CGRect(x: -mw / 2, y: mouthY - mh / 2, width: mw, height: mh)
@@ -192,8 +150,6 @@ struct MascotView: View {
             g.stroke(Path { p in p.move(to: CGPoint(x: -mw / 2, y: mouthY)); p.addLine(to: CGPoint(x: mw / 2, y: mouthY)) },
                      with: .color(eyeColor), style: StrokeStyle(lineWidth: s * 0.03, lineCap: .round))
         }
-
-        // ---------- Sparkles (excited) — twinkle around the head, in canvas space ----------
         if mood == .excited {
             let spots: [(CGFloat, CGFloat, Double)] = [(-0.62, -0.30, 0), (0.64, -0.12, 0.5),
                                                        (-0.58, 0.28, 0.85), (0.60, 0.34, 0.3), (0.0, -0.66, 0.7)]
@@ -204,8 +160,6 @@ struct MascotView: View {
                 drawSparkle(&ctx, at: p, r: s * 0.07 * CGFloat(tw), color: Palette.working.opacity(0.9 * tw))
             }
         }
-
-        // ---------- zzz (sleeping) ----------
         if mood == .sleeping {
             let zt = t.truncatingRemainder(dividingBy: 2.8) / 2.8
             for i in 0..<3 {
@@ -220,9 +174,7 @@ struct MascotView: View {
             }
         }
     }
-
-    /// A little 4-point sparkle (diamond star).
-    private func drawSparkle(_ ctx: inout GraphicsContext, at p: CGPoint, r: CGFloat, color: Color) {
+    private func drawSparkle(_ ctx: inout GraphicsContext, at p: CGPoint, r: CGFloat, color: Color) {//辅助函数，画一个四角形
         var path = Path()
         let k = r * 0.34
         path.move(to: CGPoint(x: p.x, y: p.y - r))

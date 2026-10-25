@@ -1,28 +1,14 @@
-import SwiftUI
+//长条形态：有无刘海的布局
 
-// 系统 API 速览：
-// - Group：不额外生成布局容器，只用来在 if/else 中组织多种 View。
-// - HStack：横向排布左右 bar 内容。
-// - Color.clear：透明占位，这里用来给刘海区域留空。
-// - .frame：固定左右区域和整体 bar 的宽高。
-/// Collapsed CONTENT for the **sides / flat** form. The black bar background + clipping
-/// is supplied by the shared morphing island in `NotchRootView`.
-///
-/// - Notched Macs: one bar spanning the notch — mascot on the left, a fixed-width empty
-///   gap over the notch, live metrics on the right.
-/// - Non-notched Macs: one flat continuous bar (no center gap) — mascot + metrics in a row.
+import SwiftUI
 struct SidesBar: View {
     var stats: DashStats
     var metrics: NotchMetrics
-
     private var mood: Mood { Mood.from(stats) }
-    private var barHeight: CGFloat { metrics.menuBarHeight }
-
-    /// 根据屏幕是否有 notch 计算收起态总宽度。
-    static func width(_ m: NotchMetrics) -> CGFloat {
+    private var barHeight: CGFloat { metrics.menuBarHeight }//高度与菜单持平
+    static func width(_ m: NotchMetrics) -> CGFloat {//计算总宽度 热区判断要算
         m.notchWidth > 0 ? m.notchWidth + Dim.barSideWidth * 2 : Dim.flatBarWidth
     }
-
     private var working: LiveMetric {
         LiveMetric(icon: "bolt.fill", value: stats.totalWorking,
                    color: Palette.working, pulse: stats.totalWorking > 0)
@@ -33,11 +19,9 @@ struct SidesBar: View {
     private var mascot: some View {
         MascotView(mood: mood, size: min(barHeight * 0.62, 21)).frame(width: 25).clipped()
     }
-
     var body: some View {
-        Group {
+        Group {//只组织视图、不产生布局容器，用来在 if/else 两个分支外面统一加修饰符
             if metrics.notchWidth > 0 {
-                // Notched: content flanks the empty notch gap.
                 HStack(spacing: 0) {
                     HStack(spacing: 0) { Spacer(minLength: 0); mascot }
                         .frame(width: Dim.barSideWidth)
@@ -49,7 +33,6 @@ struct SidesBar: View {
                     .frame(width: Dim.barSideWidth)
                 }
             } else {
-                // Non-notched: one continuous row, no gap.
                 HStack(spacing: 13) {
                     mascot
                     working

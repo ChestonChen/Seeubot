@@ -1,21 +1,24 @@
 import SwiftUI
+// struct NotchRootView: View { //遵循view 实现body即可显现
+//     var body: some View {//靠编译器推导视图类型，渲染调用body获得值
+//         VStack(spacing: 0) { //vstack 垂直堆叠视图，spacing: 0 间距为0
+//             RoundedRectangle(cornerRadius: Dim.pillCorner)//圆角
+//                 .fill(Color.black)//填充黑色
+//                 .frame(width: 244, height: Dim.pillHeight)//设置宽度为244，高度为胶囊高度
+//         }
+//         .frame(width: Dim.panelWidth, height: Dim.panelHeight, alignment: .top)//设置宽度为面板宽度，高度为面板高度，对齐方式为顶部 把上面的设置尺寸都包起来
+//         //swiftui .frame是越在下面设置尺寸，越在外层显示，包住上面的尺寸
+//     }//效果是电脑上方有个黑块
+// }
 
-// 系统 API 速览：
-// - Shape / Path：SwiftUI 自定义图形协议和路径，用来画特殊圆角 island 外形。
-// - @ObservedObject：订阅 `StatsStore`，store 变化会触发 body 重新计算。
-// - VStack：纵向排布 UI。
-// - .transition / .animation：控制胶囊、bar、dashboard 切换时的过渡动画。
-// - .background / .overlay / .clipShape / .shadow：SwiftUI 常用外观修饰符。
-/// 胶囊/卡片共用的外形：顶部是直角贴住屏幕顶边，底部圆角向下展开。
-struct IslandShape: Shape {
-    var bottomRadius: CGFloat
+struct IslandShape: Shape {//SwiftUI 的形状协议 需要实现path方法
+    var bottomRadius: CGFloat //底部圆角半径
     var animatableData: CGFloat {
         get { bottomRadius }
         set { bottomRadius = newValue }
     }
-
     func path(in rect: CGRect) -> Path {
-        let r = min(bottomRadius, rect.height / 2, rect.width / 2)
+        let r = min(bottomRadius, rect.height / 2, rect.width / 2) //防止圆角畸形
         var p = Path()
         p.move(to: CGPoint(x: rect.minX, y: rect.minY))
         p.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
@@ -30,49 +33,35 @@ struct IslandShape: Shape {
     }
 }
 
-/// 顶部组件的 SwiftUI 根视图。
-///
-/// 这里负责把两种可见状态串起来：
-/// - 收起：刘海下方单胶囊，或横跨刘海的长条
-/// - 展开：鼠标 hover 后的 dashboard
+//把闭环0的黑矩形塞进岛的轮廓里
 struct NotchRootView: View {
-    @ObservedObject var store: StatsStore
-
+    @ObservedObject var store: StatsStore //观察者看到publish的属性改变后会标记要重新计算body
     private var m: NotchMetrics { store.metrics }
     private var expanded: Bool { store.hover }
     private var mood: Mood { Mood.from(store.stats) }
-
     var body: some View {
         morphingIsland
             .animation(.spring(response: 0.42, dampingFraction: 0.82), value: store.hover)
             .animation(.spring(response: 0.42, dampingFraction: 0.82), value: store.mode)
             .frame(width: Dim.panelWidth, height: Dim.panelHeight, alignment: .top)
     }
-
-    // 无刘海 Mac 没有 hanging 形态，统一走 flat/sides bar。
-    private var isSides: Bool { !m.hasNotch || store.mode == .sides }
+    private var isSides: Bool { !m.hasNotch || store.mode == .sides }//是否是长条态
     private var collapsedWidth: CGFloat { isSides ? SidesBar.width(m) : m.notchWidth }
     private var width: CGFloat { expanded ? Dim.cardWidth : collapsedWidth }
     private var corner: CGFloat { expanded ? Dim.cardCorner : (isSides ? Dim.barCorner : Dim.pillCorner) }
-    // Bar/flat-collapsed content sits at the menu-bar line (no top pad); everything else
-    // clears the menu bar / notch. Animating this pad grows the bar smoothly into the card.
     private var topPad: CGFloat { (expanded || !isSides) ? m.menuBarHeight : 0 }
-
-    /// 胶囊和 dashboard 的 morph 主体。
-    /// 宽度、圆角、顶部 padding、内部内容都在同一个 view 内动画，
-    /// 所以用户看到的是“一个组件变形”，不是两个组件硬切。
     private var morphingIsland: some View {
         VStack(spacing: 0) {
-            if expanded {
+            if expanded {//展开渲染面板
                 DashboardBody(stats: store.stats, loaded: store.loaded,
                               mode: store.mode, hasNotch: m.hasNotch,
                               onToggleMode: { store.toggleMode() },
                               onMenu: { store.onMenu?() })
                     .transition(.opacity.combined(with: .move(edge: .top)))
-            } else if isSides {
+            } else if isSides { //长条
                 SidesBar(stats: store.stats, metrics: m)
                     .transition(.opacity)
-            } else {
+            } else {//普通药丸态
                 CollapsedPill(stats: store.stats, metrics: m)
                     .transition(.opacity)
             }
@@ -89,8 +78,6 @@ struct NotchRootView: View {
         .overlay(alignment: .bottom) { moodUnderglow(width: width) }
         .shadow(color: .black.opacity(0.32), radius: expanded ? 12 : 7, x: 0, y: expanded ? 6 : 3)
     }
-
-    /// 底部状态光：working/idle/sleeping 会用不同颜色给组件一个很弱的状态提示。
     private func moodUnderglow(width: CGFloat) -> some View {
         RoundedRectangle(cornerRadius: 3)
             .fill(mood.bulb)
